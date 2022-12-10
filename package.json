@@ -1,0 +1,36 @@
+{
+	"private": true,
+	"type": "module",
+	"scripts": {
+		"dev": "vite dev",
+		"build": "vite build",
+		"preview": "vite preview",
+		"lint": "prettier --check src *.js && eslint src *.js && svelte-check",
+		"format": "prettier --write src *.js && eslint --fix src *.js"
+	},
+	"devDependencies": {
+		"@sveltejs/adapter-static": "1.0.0-next.49",
+		"@sveltejs/kit": "1.0.0-next.581",
+		"@typescript-eslint/eslint-plugin": "^5.46.0",
+		"@typescript-eslint/parser": "^5.46.0",
+		"eslint": "^8.29.0",
+		"eslint-config-prettier": "^8.5.0",
+		"eslint-plugin-svelte3": "^4.0.0",
+		"prettier": "^2.8.1",
+		"prettier-plugin-svelte": "^2.9.0",
+		"sass": "^1.56.2",
+		"svelte": "^3.54.0",
+		"svelte-check": "^2.10.2",
+		"svelte-preprocess": "^5.0.0",
+		"typescript": "^4.9.4"
+	},
+	"prettier": {
+		"useTabs": true,
+		"printWidth": 100,
+		"semi": false,
+		"singleQuote": true,
+		"pluginSearchDirs": [
+			"."
+		]
+	}
+}
