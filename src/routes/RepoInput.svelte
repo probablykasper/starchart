@@ -30,11 +30,22 @@
 </script>
 
 <div>
-	<div on:keydown={inputKeydown}>
-		<input class="bordered owner" type="text" bind:value={owner} />
-		<div><span class="bordered slash">/</span></div>
-		<input class="bordered repo" type="text" bind:this={repoElement} bind:value={repo} />
-	</div>
+	<input
+		class="bordered owner"
+		type="text"
+		bind:value={owner}
+		placeholder="probablykasper"
+		on:keydown={inputKeydown}
+	/>
+	<div><span class="bordered slash">/</span></div>
+	<input
+		class="bordered repo"
+		type="text"
+		bind:this={repoElement}
+		bind:value={repo}
+		placeholder="cpc"
+		on:keydown={inputKeydown}
+	/>
 	<button class="bordered button" on:click={() => onSubmit()}>Load</button>
 </div>
 
@@ -42,19 +53,26 @@
 	div
 		display: flex
 		align-items: center
-		outline: none
+		flex-direction: column
+		justify-content: center
+		flex-grow: 1
+		max-width: 32rem
+		flex-direction: row
 	.owner
-		border-top-left-radius: 6px
-		border-bottom-left-radius: 6px
+		margin-bottom: 0px
+		border-radius: 6px 0px 0px 6px
+		&:focus
+			z-index: 10
 	.slash
 		border-left: none
 		border-right: none
+	input
+		width: 100%
 	button.bordered
-		border-top-right-radius: 6px
-		border-bottom-right-radius: 6px
 		background-color: hsla(52, 40%, 20%)
 		border-color: transparent
 		border-left-width: 0px
+		border-radius: 0px 6px 6px 0px
 		&:focus-visible
 			border-color: #ffdd00
 			z-index: 10

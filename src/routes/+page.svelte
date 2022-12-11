@@ -8,14 +8,13 @@
 	import AccessToken from './AccessToken.svelte'
 	import '../app.sass'
 
-	// let [owner, repo] = ['tauri-apps', 'tao']
-	let [owner, repo] = ['probablykasper', 'cpc']
+	let [owner, repo] = ['', '']
 
 	type Datapoint = { x: Date; y: number }
 	type Serie = {
 		name: string
 		data: Datapoint[]
-		final: Datapoint
+		final?: Datapoint
 	}
 	type Json = {
 		series: Serie[]
@@ -64,11 +63,8 @@
 		const newSerie: Serie = {
 			name: `${owner}/${repo}`,
 			data: [],
-			final: {
-				x: new Date(),
-				y: 0,
-			},
 		}
+		let totalCount = 0
 		series = [...series, newSerie]
 		do {
 			const { error, stargazers } = await fetchStargazersPage(owner, repo, 'forward', endCursor)
@@ -83,7 +79,7 @@
 			} else {
 				endCursor = undefined
 			}
-			newSerie.final.y = stargazers.totalCount
+			totalCount = stargazers.totalCount
 
 			const newData = stargazers.starTimes.map((starTime) => {
 				count++
@@ -96,6 +92,10 @@
 			newSerie.data = [...newSerie.data, ...newData]
 			series = series
 		} while (endCursor)
+		newSerie.final = {
+			x: new Date(),
+			y: totalCount,
+		}
 
 		const json: Json = {
 			series,
@@ -109,8 +109,11 @@
 		const finalSeries = [...series].map((serie) => {
 			const finalSerie: Serie = {
 				name: serie.name,
-				data: [...serie.data, serie.final],
+				data: [...serie.data],
 				final: serie.final,
+			}
+			if (serie.final) {
+				finalSerie.data.push(serie.final)
 			}
 			return finalSerie
 		})
@@ -119,9 +122,11 @@
 </script>
 
 <nav>
-	<h1>Starchart</h1>
+	<h1 class="left">Starchart</h1>
 	<RepoInput bind:owner bind:repo onSubmit={() => getStargazers(owner, repo)} />
-	<AccessToken />
+	<div class="right">
+		<AccessToken />
+	</div>
 </nav>
 
 {#each errors as error, i (error.id)}
@@ -153,7 +158,7 @@
 	</div>
 {/each}
 
-<div>
+<div class="series">
 	{#each series as serie, i (serie.name)}
 		{@const hex = hexColors[i % hexColors.length]}
 		<span
@@ -248,11 +253,21 @@
 	nav
 		display: flex
 		width: 100%
-		justify-content: space-between
 		padding-top: 0.25rem
 		padding-bottom: 1rem
-		> :first-child, > :last-child
-			width: 200px
+		flex-direction: column
+		align-items: center
+		justify-content: center
+		@media (min-width: 768px)
+			flex-direction: row
+			justify-content: space-between
+			.left, .right
+				width: 12rem
+			.right
+				display: flex
+				justify-content: flex-end
+	.series
+		text-align: center
 	.serie
 		padding: 0.1rem 0.5rem
 		padding-right: 0rem

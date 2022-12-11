@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { browser } from '$app/environment'
 	import { token } from './github'
 	import Modal from './Modal.svelte'
 
@@ -12,11 +13,17 @@
 	}
 </script>
 
-<button class="bordered button rounded" class:yellow={!$token} on:click={() => (editToken = true)}>
-	{$token ? 'Edit' : 'Add'} access token
-</button>
-<Modal if={editToken} title="Access token" onClose={() => (editToken = false)} let:focus>
-	<form action="#" on:submit|preventDefault={save}>
+{#if browser}
+	<button
+		class="bordered button rounded"
+		class:yellow={!$token}
+		on:click={() => (editToken = true)}
+	>
+		{$token ? 'Edit' : 'Add'} access token
+	</button>
+{/if}
+{#if editToken}
+	<Modal title="Access token" onCancel={() => (editToken = false)} form={save} let:focus>
 		<p>
 			You'll want a GitHub access token to avoid rate limiting.
 			<a href="https://github.com/settings/tokens/new?description=Starchart"
@@ -28,11 +35,12 @@
 			class="bordered rounded"
 			bind:value={tokenInput}
 			placeholder="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"
-			use:focus
 		/>
-		<button class="bordered button rounded yellow">Save</button>
-	</form>
-</Modal>
+		<div slot="buttons">
+			<button class="save bordered button rounded yellow">Save</button>
+		</div>
+	</Modal>
+{/if}
 
 <style lang="sass">
 	p
@@ -42,7 +50,7 @@
 	button
 		align-self: center
 		border-radius: 8px
-	form button
+	button.save
 		margin-top: 0.5rem
 		margin-left: auto
 		padding-left: 1.5rem
