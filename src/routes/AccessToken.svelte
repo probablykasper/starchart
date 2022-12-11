@@ -2,16 +2,19 @@
 	import { token } from './github'
 	import Modal from './Modal.svelte'
 
+	let tokenInput = $token
 	let editToken = false
 
 	function save() {
 		token.set($token)
 		editToken = false
+		$token = tokenInput
 	}
 </script>
 
-<button class="bordered button rounded" on:click={() => (editToken = true)}>Add access token</button
->
+<button class="bordered button rounded" class:yellow={!$token} on:click={() => (editToken = true)}>
+	{$token ? 'Edit' : 'Add'} access token
+</button>
 <Modal if={editToken} title="Access token" onClose={() => (editToken = false)} let:focus>
 	<form action="#" on:submit={save}>
 		<p>
@@ -23,7 +26,7 @@
 		<input
 			type="text"
 			class="bordered rounded"
-			bind:value={$token}
+			bind:value={tokenInput}
 			placeholder="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"
 			use:focus
 		/>
