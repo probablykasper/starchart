@@ -69,8 +69,8 @@
 	input
 		width: 100%
 	button.bordered
-		background-color: hsla(52, 40%, 20%)
-		border-color: transparent
+		background-color: hsla(52, 100%, 18%)
+		border-left-color: transparent
 		border-left-width: 0px
 		border-radius: 0px 6px 6px 0px
 		&:focus-visible

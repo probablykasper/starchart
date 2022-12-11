@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { browser } from '$app/environment'
 	import { token } from './github'
-	import Modal from './Modal.svelte'
+	import Modal from 'modal-svelte'
 
 	let tokenInput = $token
 	let editToken = false
@@ -35,6 +35,7 @@
 			class="bordered rounded"
 			bind:value={tokenInput}
 			placeholder="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"
+			use:focus
 		/>
 		<div slot="buttons">
 			<button class="save bordered button rounded yellow">Save</button>
@@ -56,7 +57,7 @@
 		padding-left: 1.5rem
 		padding-right: 1.5rem
 	.yellow
-		background-color: hsla(52, 40%, 25%)
+		background-color: hsla(52, 100%, 18%)
 	input
 		width: 100%
 		&:focus
