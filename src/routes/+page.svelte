@@ -13,14 +13,24 @@
 	type Serie = {
 		name: string
 		data: Datapoint[]
+		final: Datapoint
 	}
+	type Json = {
+		series: Serie[]
+		v: number
+	}
+	/** Used to invalidate old localStorage */
+	const jsonTypeVersion = 0
+
 	let series: Serie[] = []
-	const hexColors = ['#2E93fA', '#66DA26', '#546E7A', '#E91E63', '#FF9800']
+	const hexColors = ['#ffdd00', '#2491ff', '#60ff0a', '#FFFFFF', '#E91E63', '#FF9800']
 	onMount(() => {
 		try {
 			const seriesLocalStorage = JSON.parse(localStorage.getItem('starchart-series') || '[]')
-			if (seriesLocalStorage instanceof Array) {
-				series = seriesLocalStorage
+			if (seriesLocalStorage?.v === jsonTypeVersion) {
+				series = (seriesLocalStorage as Json).series
+			} else {
+				localStorage.removeItem('starchart-series')
 			}
 		} catch (_e) {
 			// ignore
@@ -52,12 +62,17 @@
 		const newSerie: Serie = {
 			name: `${owner}/${repo}`,
 			data: [],
+			final: {
+				x: new Date(),
+				y: 0,
+			},
 		}
 		series = [...series, newSerie]
 		do {
 			const { error, stargazers } = await fetchStargazersPage(owner, repo, 'forward', endCursor)
 			if (!stargazers) {
 				addError(error)
+				series = series.filter((serie) => serie.name !== newSerie.name)
 				return
 			}
 
@@ -66,14 +81,8 @@
 			} else {
 				endCursor = undefined
 			}
-			// const stargazers = {
-			// 	starTimes: [
-			// 		'2019-05-08T16:29:05Z',
-			// 		'2020-05-13T03:33:27Z',
-			// 		'2021-05-14T14:46:40Z',
-			// 		'2022-05-15T03:07:23Z',
-			// 	],
-			// }
+			newSerie.final.y = stargazers.totalCount
+
 			const newData = stargazers.starTimes.map((starTime) => {
 				count++
 				return {
@@ -81,11 +90,29 @@
 					y: count,
 				}
 			})
+
 			newSerie.data = [...newSerie.data, ...newData]
 			series = series
 		} while (endCursor)
 
-		localStorage.setItem('starchart-series', JSON.stringify(series))
+		const json: Json = {
+			series,
+			v: jsonTypeVersion,
+		}
+		localStorage.setItem('starchart-series', JSON.stringify(json))
+	}
+
+	$: finalSeries = finalize(series)
+	function finalize(series: Serie[]): Serie[] {
+		const finalSeries = [...series].map((serie) => {
+			const finalSerie: Serie = {
+				name: serie.name,
+				data: [...serie.data, serie.final],
+				final: serie.final,
+			}
+			return finalSerie
+		})
+		return finalSeries
 	}
 </script>
 
@@ -133,7 +160,7 @@
 		<span
 			class="serie"
 			style:border-color={hex}
-			style:background-color={hex + '88'}
+			style:background-color={hex + '77'}
 			transition:scale={{ duration: 200, easing: cubicOut, start: 0.75, opacity: 0 }}
 		>
 			{serie.name}
@@ -166,18 +193,34 @@
 	<Chart
 		options={{
 			chart: {
-				height: height || '100%',
+				background: 'transparent',
 				width: width || '100%',
+				height: height || '100%',
 				foreColor: '#ccc',
-				type: 'line',
+				dropShadow: {
+					enabled: true,
+					color: '#000',
+				},
+				type: 'area',
 				fontFamily: 'inherit',
 			},
 			colors: hexColors,
 			stroke: {
-				curve: 'straight',
+				curve: 'smooth',
 				// dashArray
 			},
-			series,
+			dataLabels: {
+				enabled: false,
+			},
+			fill: {
+				gradient: {
+					opacityFrom: 0.55,
+					opacityTo: 0,
+					stops: [0, 90],
+					// shade: 'dark',
+				},
+			},
+			series: finalSeries,
 			xaxis: {
 				// categories: [1991, 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999],
 				type: 'datetime',
@@ -190,6 +233,9 @@
 			},
 			grid: {
 				borderColor: '#808080',
+			},
+			theme: {
+				mode: 'dark',
 			},
 		}}
 	/>
