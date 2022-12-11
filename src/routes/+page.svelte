@@ -5,7 +5,8 @@
 	import { onMount } from 'svelte'
 	import { cubicOut } from 'svelte/easing'
 	import RepoInput from './RepoInput.svelte'
-	import Modal from './Modal.svelte'
+	import AccessToken from './AccessToken.svelte'
+	import '../app.sass'
 
 	// let [owner, repo] = ['tauri-apps', 'tao']
 	let [owner, repo] = ['probablykasper', 'cpc']
@@ -43,7 +44,6 @@
 	$: if (width) {
 		height = Math.round(width * 0.6)
 	}
-	let editToken = false
 
 	let errors: { id: number; msg: string }[] = []
 	function addError(msg: string) {
@@ -121,11 +121,8 @@
 <nav>
 	<h1>Starchart</h1>
 	<RepoInput bind:owner bind:repo onSubmit={() => getStargazers(owner, repo)} />
-	<button class="pat" on:click={() => (editToken = true)}>Add access token</button>
+	<AccessToken />
 </nav>
-<Modal>
-	<a href="https://github.com/settings/tokens/new?description=Starchart">Generate PAT</a>
-</Modal>
 
 {#each errors as error, i (error.id)}
 	<div class="error-container" transition:slide={{ duration: 200 }}>
@@ -248,24 +245,12 @@
 </div>
 
 <style lang="sass">
-	:global(html)
-		margin: 0px
-		font-family: ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica Neue,Arial,Noto Sans,sans-serif,"Apple Color Emoji","Segoe UI Emoji",Segoe UI Symbol,"Noto Color Emoji"
-		font-size: 18px
-		background-color: #111318
-		color: #f2f2f2
-		text-align: center
-	:global(body)
-		max-width: 1000px
-		margin: 0px auto
 	nav
 		display: flex
 		width: 100%
 		justify-content: space-between
 		> :first-child, > :last-child
 			width: 200px
-	h1
-		color: #ffdd00
 	.serie
 		padding: 0.1rem 0.5rem
 		padding-right: 0rem

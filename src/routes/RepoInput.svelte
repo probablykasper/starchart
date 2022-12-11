@@ -35,44 +35,29 @@
 		<div><span class="bordered slash">/</span></div>
 		<input class="bordered repo" type="text" bind:this={repoElement} bind:value={repo} />
 	</div>
-	<button class="bordered" on:click={() => onSubmit()}>Load</button>
+	<button class="bordered button" on:click={() => onSubmit()}>Load</button>
 </div>
 
 <style lang="sass">
-  div
-    display: flex
-    // align-items: stretch
-    align-items: center
-    outline: none
-  .bordered
-    padding: 0.1rem 0.5rem
-    border: 1px solid hsla(0, 0%, 50%, 0.7)
-    color: #e0e0e0
-    line-height: 1.5
-    font-size: 0.9rem
-    box-sizing: border-box
-    margin: 0rem
-    display: block
-  .owner
-    border-top-left-radius: 6px
-    border-bottom-left-radius: 6px
-  .slash
-    border-left: none
-    border-right: none
-  input, button
-    background-color: transparent
-    &:focus
-      outline: none
-      border-color: #ffdd00
-  button.bordered
-    border-top-right-radius: 6px
-    border-bottom-right-radius: 6px
-    background-color: hsla(52, 100%, 50%, 0.4)
-    &:not(:focus)
-      border-color: transparent
-      border-left-width: 0px
-    &:focus
-      z-index: 10
-      margin-left: -1px
-      border-left-width: 1px
+	div
+		display: flex
+		align-items: center
+		outline: none
+	.owner
+		border-top-left-radius: 6px
+		border-bottom-left-radius: 6px
+	.slash
+		border-left: none
+		border-right: none
+	button.bordered
+		border-top-right-radius: 6px
+		border-bottom-right-radius: 6px
+		background-color: hsla(52, 40%, 20%)
+		border-color: transparent
+		border-left-width: 0px
+		&:focus-visible
+			border-color: #ffdd00
+			z-index: 10
+			margin-left: -1px
+			border-left-width: 1px
 </style>

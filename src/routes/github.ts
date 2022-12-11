@@ -1,6 +1,24 @@
 import { Octokit } from 'octokit'
 import { PUBLIC_PAT } from '$env/static/public'
-const octokit = new Octokit({ auth: PUBLIC_PAT, throttle: { enabled: false } })
+import { get, writable } from 'svelte/store'
+import { browser } from '$app/environment'
+
+const loadedToken = browser ? localStorage.getItem('starchart-token') : undefined
+export const token = writable(loadedToken || '')
+if (browser) {
+	token.subscribe((value) => {
+		if (value === '') {
+			localStorage.removeItem('starchart-token')
+		} else {
+			localStorage.setItem('starchart-token', value)
+		}
+	})
+}
+
+const octokit = new Octokit({
+	auth: get(token) || PUBLIC_PAT,
+	throttle: { enabled: false },
+})
 
 export async function fetchStargazersPage(
 	owner: string,
