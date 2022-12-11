@@ -5,6 +5,7 @@
 	import { onMount } from 'svelte'
 	import { cubicOut } from 'svelte/easing'
 	import RepoInput from './RepoInput.svelte'
+	import Modal from './Modal.svelte'
 
 	// let [owner, repo] = ['tauri-apps', 'tao']
 	let [owner, repo] = ['probablykasper', 'cpc']
@@ -42,6 +43,7 @@
 	$: if (width) {
 		height = Math.round(width * 0.6)
 	}
+	let editToken = false
 
 	let errors: { id: number; msg: string }[] = []
 	function addError(msg: string) {
@@ -116,7 +118,14 @@
 	}
 </script>
 
-<h1>Starchart</h1>
+<nav>
+	<h1>Starchart</h1>
+	<RepoInput bind:owner bind:repo onSubmit={() => getStargazers(owner, repo)} />
+	<button class="pat" on:click={() => (editToken = true)}>Add access token</button>
+</nav>
+<Modal>
+	<a href="https://github.com/settings/tokens/new?description=Starchart">Generate PAT</a>
+</Modal>
 
 {#each errors as error, i (error.id)}
 	<div class="error-container" transition:slide={{ duration: 200 }}>
@@ -146,13 +155,6 @@
 		</div>
 	</div>
 {/each}
-
-<RepoInput bind:owner bind:repo onSubmit={() => getStargazers(owner, repo)} />
-<button on:click={() => getStargazers(owner, repo)}>Load</button>
-
-<div>
-	<a href="https://github.com/settings/tokens/new?description=Starchart">Generate PAT</a>
-</div>
 
 <div>
 	{#each series as serie, i (serie.name)}
@@ -222,8 +224,12 @@
 			},
 			series: finalSeries,
 			xaxis: {
-				// categories: [1991, 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999],
 				type: 'datetime',
+			},
+			yaxis: {
+				labels: {
+					formatter: (value) => value.toFixed(0),
+				},
 			},
 			tooltip: {
 				theme: 'dark',
@@ -252,6 +258,12 @@
 	:global(body)
 		max-width: 1000px
 		margin: 0px auto
+	nav
+		display: flex
+		width: 100%
+		justify-content: space-between
+		> :first-child, > :last-child
+			width: 200px
 	h1
 		color: #ffdd00
 	.serie
@@ -264,6 +276,7 @@
 		display: inline-flex
 		align-items: center
 		user-select: none
+		font-weight: 500
 		svg
 			display: block
 	button
@@ -292,7 +305,4 @@
 			padding: 0.2rem
 	button:hover
 		opacity: 0.7
-	// .chart
-	//   :global(.apexcharts-tooltip), :global(.apexcharts-marker)
-	//     transition: 200ms ease-out
 </style>
