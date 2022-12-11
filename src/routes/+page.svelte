@@ -1,27 +1,52 @@
 <script lang="ts">
 	import Chart from './Chart.svelte'
-	import { Octokit } from 'octokit'
-	import { PUBLIC_PAT } from '$env/static/public'
-	import { checkShortcut } from './shortcuts'
+	import { fly, scale, slide } from 'svelte/transition'
+	import { fetchStargazersPage } from './github'
+	import { onMount } from 'svelte'
+	import { cubicOut } from 'svelte/easing'
+	import RepoInput from './RepoInput.svelte'
 
-	const octokit = new Octokit({ auth: PUBLIC_PAT })
-	let owner = 'tauri-apps'
-	let repo = 'tao'
+	// let [owner, repo] = ['tauri-apps', 'tao']
+	let [owner, repo] = ['probablykasper', 'cpc']
 
-	// let series: Series = [
-	// 	{
-	// 		name: 'sales',
-	// 		// data: [30, 40, 35, null, null, null, 70, 91, 125],
-	// 		data: [30, 40, 35, 38, 58, 60, 70, 91, 125],
-	// 	},
-	// ]
 	type Datapoint = { x: Date; y: number }
 	type Serie = {
 		name: string
 		data: Datapoint[]
 	}
 	let series: Serie[] = []
-	async function getStargazers() {
+	const hexColors = ['#2E93fA', '#66DA26', '#546E7A', '#E91E63', '#FF9800']
+	onMount(() => {
+		try {
+			const seriesLocalStorage = JSON.parse(localStorage.getItem('starchart-series') || '[]')
+			if (seriesLocalStorage instanceof Array) {
+				series = seriesLocalStorage
+			}
+		} catch (_e) {
+			// ignore
+		}
+	})
+
+	let width: number
+	let height: number
+	$: if (width) {
+		height = Math.round(width * 0.6)
+	}
+
+	let errors: { id: number; msg: string }[] = []
+	function addError(msg: string) {
+		const id = Math.random()
+		errors.push({ id, msg })
+		errors = errors
+		return id
+	}
+
+	async function getStargazers(owner: string, repo: string) {
+		for (const serie of series) {
+			if (serie.name === `${owner}/${repo}`) {
+				return // already added
+			}
+		}
 		let count = 0
 		let endCursor: string | undefined
 		const newSerie: Serie = {
@@ -30,7 +55,12 @@
 		}
 		series = [...series, newSerie]
 		do {
-			const stargazers = await fetchStargazersPage('forward', endCursor)
+			const { error, stargazers } = await fetchStargazersPage(owner, repo, 'forward', endCursor)
+			if (!stargazers) {
+				addError(error)
+				return
+			}
+
 			if (stargazers.pageInfo.hasNextPage) {
 				endCursor = stargazers.pageInfo.endCursor
 			} else {
@@ -54,84 +84,98 @@
 			newSerie.data = [...newSerie.data, ...newData]
 			series = series
 		} while (endCursor)
-	}
-	async function fetchStargazersPage(direction: 'forward' | 'back', cursor?: string) {
-		const response = (await octokit.graphql(
-			`query($owner: String!, $repo: String!, $first: Int, $last: Int, $after: String, $before: String) {
-				repository(owner: $owner, name: $repo) {
-					stargazers(first: $first, last: $last, after: $after, before: $before) {
-						totalCount
-						pageInfo {
-							startCursor
-							endCursor
-							hasNextPage
-							hasPreviousPage
-						}
-						edges {
-							starredAt
-						}
-					}
-				}
-			}`,
-			{
-				owner,
-				repo,
-				after: direction === 'forward' ? cursor : undefined,
-				before: direction === 'back' ? cursor : undefined,
-				first: direction === 'forward' ? 100 : undefined,
-				last: direction === 'back' ? 100 : undefined,
-			}
-		)) as {
-			repository: {
-				stargazers: {
-					totalCount: number
-					pageInfo: {
-						startCursor: string
-						endCursor: string
-						hasNextPage: boolean
-						hasPreviousPage: boolean
-					}
-					edges: { starredAt: string }[]
-				}
-			}
-		}
-		console.log('response', response)
-		return {
-			...response.repository.stargazers,
-			starTimes: response.repository.stargazers.edges.map((edge) => edge.starredAt),
-		}
-	}
 
-	function inputKeydown(e: KeyboardEvent) {
-		if (checkShortcut(e, 'Enter')) {
-			console.log('enter')
-			getStargazers()
-		}
+		localStorage.setItem('starchart-series', JSON.stringify(series))
 	}
 </script>
 
 <h1>Starchart</h1>
 
-<form action="" />
-<div on:keydown={inputKeydown}>
-	<input type="text" bind:value={owner} />
-	<input type="text" bind:value={repo} />
+{#each errors as error, i (error.id)}
+	<div class="error-container" transition:slide={{ duration: 200 }}>
+		<div class="error" transition:fly={{ duration: 200, opacity: 0, y: -40 }}>
+			{error.msg}
+			<button
+				on:click={() => {
+					errors.splice(i, 1)
+					errors = errors
+				}}
+			>
+				<svg
+					fill="currentColor"
+					width="18"
+					height="18"
+					clip-rule="evenodd"
+					fill-rule="evenodd"
+					stroke-linejoin="round"
+					stroke-miterlimit="2"
+					viewBox="0 0 24 24"
+					xmlns="http://www.w3.org/2000/svg"
+					><path
+						d="m12 10.93 5.719-5.72c.146-.146.339-.219.531-.219.404 0 .75.324.75.749 0 .193-.073.385-.219.532l-5.72 5.719 5.719 5.719c.147.147.22.339.22.531 0 .427-.349.75-.75.75-.192 0-.385-.073-.531-.219l-5.719-5.719-5.719 5.719c-.146.146-.339.219-.531.219-.401 0-.75-.323-.75-.75 0-.192.073-.384.22-.531l5.719-5.719-5.72-5.719c-.146-.147-.219-.339-.219-.532 0-.425.346-.749.75-.749.192 0 .385.073.531.219z"
+					/></svg
+				>
+			</button>
+		</div>
+	</div>
+{/each}
+
+<RepoInput bind:owner bind:repo onSubmit={() => getStargazers(owner, repo)} />
+<button on:click={() => getStargazers(owner, repo)}>Load</button>
+
+<div>
+	<a href="https://github.com/settings/tokens/new?description=Starchart">Generate PAT</a>
 </div>
-<button on:click={getStargazers}>Load</button>
 
-<a href="https://github.com/settings/tokens/new?description=Starchart">Generate PAT</a>
+<div>
+	{#each series as serie, i (serie.name)}
+		{@const hex = hexColors[i % hexColors.length]}
+		<span
+			class="serie"
+			style:border-color={hex}
+			style:background-color={hex + '88'}
+			transition:scale={{ duration: 200, easing: cubicOut, start: 0.75, opacity: 0 }}
+		>
+			{serie.name}
+			<button
+				on:click={() => {
+					series.splice(i, 1)
+					series = series
+				}}
+			>
+				<svg
+					fill="currentColor"
+					width="18"
+					height="18"
+					clip-rule="evenodd"
+					fill-rule="evenodd"
+					stroke-linejoin="round"
+					stroke-miterlimit="2"
+					viewBox="0 0 24 24"
+					xmlns="http://www.w3.org/2000/svg"
+					><path
+						d="m12 10.93 5.719-5.72c.146-.146.339-.219.531-.219.404 0 .75.324.75.749 0 .193-.073.385-.219.532l-5.72 5.719 5.719 5.719c.147.147.22.339.22.531 0 .427-.349.75-.75.75-.192 0-.385-.073-.531-.219l-5.719-5.719-5.719 5.719c-.146.146-.339.219-.531.219-.401 0-.75-.323-.75-.75 0-.192.073-.384.22-.531l5.719-5.719-5.72-5.719c-.146-.147-.219-.339-.219-.532 0-.425.346-.749.75-.749.192 0 .385.073.531.219z"
+					/></svg
+				>
+			</button>
+		</span>
+	{/each}
+</div>
 
-<div class="chart">
+<div class="chart" bind:clientWidth={width}>
 	<Chart
 		options={{
 			chart: {
+				height: height || '100%',
+				width: width || '100%',
+				foreColor: '#ccc',
 				type: 'line',
-				zoom: {
-					enabled: false,
-				},
+				fontFamily: 'inherit',
 			},
+			colors: hexColors,
 			stroke: {
 				curve: 'straight',
+				// dashArray
 			},
 			series,
 			xaxis: {
@@ -140,31 +184,69 @@
 			},
 			tooltip: {
 				theme: 'dark',
-				// intersect: true,
-				shared: false,
 				x: {
 					format: 'yyyy MMM dd',
 				},
+			},
+			grid: {
+				borderColor: '#808080',
 			},
 		}}
 	/>
 </div>
 
 <style lang="sass">
-  :global(html)
-    margin: 0px
-    font-family: Arial, Helvetica, sans-serif
-    font-size: 18px
-    background-color: #111318
-    color: #f2f2f2
-    text-align: center
-  h1
-    color: #ffdd00
-  .chart
-    padding: 0px 2rem
-    max-width: 1000px
-    margin: 0px auto
-  // .chart
-  //   :global(.apexcharts-tooltip), :global(.apexcharts-marker)
-  //     transition: 200ms ease-out
+	:global(html)
+		margin: 0px
+		font-family: ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica Neue,Arial,Noto Sans,sans-serif,"Apple Color Emoji","Segoe UI Emoji",Segoe UI Symbol,"Noto Color Emoji"
+		font-size: 18px
+		background-color: #111318
+		color: #f2f2f2
+		text-align: center
+	:global(body)
+		max-width: 1000px
+		margin: 0px auto
+	h1
+		color: #ffdd00
+	.serie
+		padding: 0.1rem 0.5rem
+		padding-right: 0rem
+		border-radius: 8px
+		border: 2px solid
+		margin: 0.25rem
+		font-size: 0.85rem
+		display: inline-flex
+		align-items: center
+		user-select: none
+		svg
+			display: block
+	button
+		background: none
+		border: none
+		color: inherit
+	.chart
+		width: 100%
+	.error-container
+		padding-bottom: 1rem
+	.error
+		border: 1px solid hsla(0, 100%, 50%, 0.5)
+		background-color: hsla(0, 100%, 50%, 0.25)
+		color: hsl(0, 100%, 66%)
+		border-radius: 8px
+		padding: 0.75rem 1rem
+		margin: 0rem auto
+		max-width: 650px
+		font-size: 0.85rem
+		position: relative
+		text-align: initial
+		button
+			position: absolute
+			top: 0px
+			right: 0px
+			padding: 0.2rem
+	button:hover
+		opacity: 0.7
+	// .chart
+	//   :global(.apexcharts-tooltip), :global(.apexcharts-marker)
+	//     transition: 200ms ease-out
 </style>
