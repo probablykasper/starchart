@@ -249,6 +249,8 @@
 		display: flex
 		width: 100%
 		justify-content: space-between
+		padding-top: 0.25rem
+		padding-bottom: 1rem
 		> :first-child, > :last-child
 			width: 200px
 	.serie
@@ -257,7 +259,7 @@
 		border-radius: 8px
 		border: 2px solid
 		margin: 0.25rem
-		font-size: 0.85rem
+		font-size: 0.9rem
 		display: inline-flex
 		align-items: center
 		user-select: none
@@ -280,7 +282,7 @@
 		padding: 0.75rem 1rem
 		margin: 0rem auto
 		max-width: 650px
-		font-size: 0.85rem
+		font-size: 0.9rem
 		position: relative
 		text-align: initial
 		button

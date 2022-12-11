@@ -164,5 +164,4 @@
 			opacity: 0.7
 	h2
 		margin-top: -0.5rem
-		margin-bottom: 1.5rem
 </style>

@@ -30,22 +30,25 @@
 			placeholder="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"
 			use:focus
 		/>
-		<button class="bordered button rounded">Save</button>
+		<button class="bordered button rounded yellow">Save</button>
 	</form>
 </Modal>
 
 <style lang="sass">
 	p
-		max-width: 32rem
+		margin-top: 0rem
+		margin-bottom: 1.5rem
+		max-width: 28rem
 	button
 		align-self: center
 		border-radius: 8px
 	form button
 		margin-top: 0.5rem
 		margin-left: auto
-		background-color: hsla(52, 40%, 25%)
 		padding-left: 1.5rem
 		padding-right: 1.5rem
+	.yellow
+		background-color: hsla(52, 40%, 25%)
 	input
 		width: 100%
 		&:focus
