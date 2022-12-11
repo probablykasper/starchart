@@ -1,6 +1,11 @@
 <script lang="ts">
-	import ApexCharts from 'apexcharts'
 	import type { ApexOptions } from 'apexcharts'
+	import { onMount } from 'svelte'
+
+	let ApexCharts: Awaited<typeof import('apexcharts')>
+	onMount(async () => {
+		ApexCharts = (await import('apexcharts')).default
+	})
 
 	export let options: ApexOptions
 
@@ -19,4 +24,6 @@
 	}
 </script>
 
-<div use:apexChart={options} />
+{#if ApexCharts}
+	<div use:apexChart={options} />
+{/if}
