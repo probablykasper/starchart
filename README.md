@@ -1,5 +1,9 @@
 # Starchart
 
+GitHub star history graph
+
+![Screenshot](static/screenshot.webp)
+
 ## Commands
 
 - `npm run dev`: Start in dev mode

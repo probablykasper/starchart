@@ -16,7 +16,7 @@
 	{$token ? 'Edit' : 'Add'} access token
 </button>
 <Modal if={editToken} title="Access token" onClose={() => (editToken = false)} let:focus>
-	<form action="#" on:submit={save}>
+	<form action="#" on:submit|preventDefault={save}>
 		<p>
 			You'll want a GitHub access token to avoid rate limiting.
 			<a href="https://github.com/settings/tokens/new?description=Starchart"
