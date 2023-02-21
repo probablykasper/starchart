@@ -72,7 +72,7 @@
 			data: [],
 		}
 		let totalCount = 0
-		series = [...series, newSerie]
+		series.push(newSerie) // don't trigger store update yet
 		do {
 			if (!series.find((serie) => serie.name === newSerie.name)) {
 				// abort

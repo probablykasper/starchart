@@ -75,6 +75,7 @@
 		timeScale: {
 			fixRightEdge: true,
 			fixLeftEdge: true,
+			shiftVisibleRangeOnNewBar: true,
 		},
 		crosshair: {
 			mode: 1,
@@ -82,6 +83,9 @@
 				visible: false,
 				labelVisible: false,
 			},
+		},
+		localization: {
+			dateFormat: 'yyyy MMM dd',
 		},
 	})
 
@@ -129,8 +133,43 @@
 		})
 	}
 
+	let fillerSeries = chart.addAreaSeries({
+		priceScaleId: '',
+		visible: false,
+	})
+	function getFiller(data: SeriesData[]) {
+		let lowestDate = (Date.now() / 1000) as UTCTimestamp
+		for (const series of data) {
+			const dataPoint = series.data[0]
+			if (dataPoint && dataPoint.t < lowestDate) {
+				lowestDate = dataPoint.t
+			}
+		}
+		const dt = new Date(lowestDate * 1000)
+		const date = new Date(dt.getFullYear(), dt.getMonth(), dt.getDate())
+
+		let dates = [date]
+		while (dates[dates.length - 1] < new Date()) {
+			dates.push(
+				new Date(
+					dates[dates.length - 1].getFullYear(),
+					dates[dates.length - 1].getMonth(),
+					dates[dates.length - 1].getDate() + 1
+				)
+			)
+		}
+		fillerSeries.setData(
+			dates.map((date) => {
+				return {
+					time: (date.getTime() / 1000) as UTCTimestamp,
+				}
+			})
+		)
+	}
+
 	$: update(data)
 	function update(data: SeriesData[]) {
+		let willExpand = data.length > seriesList.length
 		for (let i = seriesList.length - 1; i > data.length - 1; i--) {
 			chart.removeSeries(seriesList[i])
 			seriesList.pop()
@@ -157,6 +196,10 @@
 			const lastColor = data[data.length - 1].color
 			const lastColorIndex = hexColors.findIndex((color) => color === hexColors[lastColor])
 			nextColorIndex = (lastColorIndex + 1) % hexColors.length
+		}
+		getFiller(data)
+		if (willExpand) {
+			resetZoom()
 		}
 	}
 
