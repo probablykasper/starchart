@@ -172,7 +172,7 @@
 
 <div class="chart" bind:clientWidth={width}>
 	<div bind:this={container}>
-		{#if chart}
+		{#if chart && series.length > 0}
 			<Chart2 {container} {chart} data={series} {width} {height} />
 		{/if}
 	</div>

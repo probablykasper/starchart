@@ -145,9 +145,11 @@
 			}
 			seriesList[i].setData(toLineSeriesData(data[i]))
 		}
-		const lastColor = data[data.length - 1].color
-		const lastColorIndex = hexColors.findIndex((color) => color === hexColors[lastColor])
-		nextColorIndex = (lastColorIndex + 1) % hexColors.length
+		if (data[data.length - 1]) {
+			const lastColor = data[data.length - 1].color
+			const lastColorIndex = hexColors.findIndex((color) => color === hexColors[lastColor])
+			nextColorIndex = (lastColorIndex + 1) % hexColors.length
+		}
 	}
 
 	// const toolTipWidth = 80
