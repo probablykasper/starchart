@@ -15,11 +15,10 @@
 	import { fly, slide } from 'svelte/transition'
 	import { fetchStargazersPage } from './github'
 	import { onMount } from 'svelte'
-	import { createChart, type IChartApi } from 'lightweight-charts'
-	import Chart, { getNextColorIndex, hexColors } from './Chart.svelte'
+	import { getNextColorIndex } from './Chart.svelte'
 	import '../app.sass'
 	import Nav from './Nav.svelte'
-	import Label from './Label.svelte'
+	import LabeledChart from './LabeledChart.svelte'
 
 	let [owner, repo] = ['', '']
 
@@ -43,20 +42,6 @@
 			// ignore
 		}
 	})
-
-	let width: number
-	let height: number
-	$: if (width) {
-		height = Math.round(width * 0.6)
-	}
-
-	let errors: { id: number; msg: string }[] = []
-	function addError(msg: string) {
-		const id = Math.random()
-		errors.push({ id, msg })
-		errors = errors
-		return id
-	}
 
 	async function getStargazers(owner: string, repo: string) {
 		for (const serie of series) {
@@ -118,11 +103,14 @@
 		localStorage.setItem('starchart-series', JSON.stringify(json))
 	}
 
-	let chart: IChartApi | null = null
-	let container: HTMLDivElement
-	onMount(() => {
-		chart = createChart(container)
-	})
+	let errors: { id: number; msg: string }[] = []
+
+	function addError(msg: string) {
+		const id = Math.random()
+		errors.push({ id, msg })
+		errors = errors
+		return id
+	}
 </script>
 
 <Nav bind:owner bind:repo onSubmit={() => getStargazers(owner, repo)} />
@@ -156,33 +144,9 @@
 	</div>
 {/each}
 
-<div class="series">
-	{#each series as serie, i (serie.name)}
-		<Label
-			hex={hexColors[serie.color]}
-			{serie}
-			onDelete={() => {
-				series.splice(i, 1)
-				series = series
-				save()
-			}}
-		/>
-	{/each}
-</div>
-
-<div class="chart" bind:clientWidth={width}>
-	<div bind:this={container}>
-		{#if chart && series.length > 0}
-			<Chart {container} {chart} data={series} {width} {height} />
-		{/if}
-	</div>
-</div>
+<LabeledChart bind:series {save} />
 
 <style lang="sass">
-	.series
-		text-align: center
-	.chart
-		width: 100%
 	.error-container
 		padding-bottom: 1rem
 	.error

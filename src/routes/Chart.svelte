@@ -89,7 +89,12 @@
 		},
 	})
 
-	const seriesList: ISeriesApi<'Area'>[] = []
+	export const seriesList: ISeriesApi<'Area'>[] = []
+
+	export function removeSeries(i: number) {
+		chart.removeSeries(seriesList[i])
+		seriesList.splice(i, 1)
+	}
 
 	function toLineSeriesData(series: SeriesData): SeriesDataItemTypeMap['Area'][] {
 		const dataPoints: { date: Date; value?: number }[] = []
@@ -170,10 +175,6 @@
 	$: update(data)
 	function update(data: SeriesData[]) {
 		let willExpand = data.length > seriesList.length
-		for (let i = seriesList.length - 1; i > data.length - 1; i--) {
-			chart.removeSeries(seriesList[i])
-			seriesList.pop()
-		}
 		for (let i = 0; i < data.length; i++) {
 			if (!seriesList[i]) {
 				const series = chart.addAreaSeries({
