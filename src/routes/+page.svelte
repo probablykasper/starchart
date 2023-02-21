@@ -16,7 +16,7 @@
 	import { fetchStargazersPage } from './github'
 	import { onMount } from 'svelte'
 	import { createChart, type IChartApi } from 'lightweight-charts'
-	import Chart2, { getNextColorIndex, hexColors } from './Chart.svelte'
+	import Chart, { getNextColorIndex, hexColors } from './Chart.svelte'
 	import '../app.sass'
 	import Nav from './Nav.svelte'
 	import Label from './Label.svelte'
@@ -173,7 +173,7 @@
 <div class="chart" bind:clientWidth={width}>
 	<div bind:this={container}>
 		{#if chart && series.length > 0}
-			<Chart2 {container} {chart} data={series} {width} {height} />
+			<Chart {container} {chart} data={series} {width} {height} />
 		{/if}
 	</div>
 </div>

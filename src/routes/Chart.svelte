@@ -28,6 +28,11 @@
 	export let width: number
 	export let height: number
 
+	$: chart.applyOptions({
+		width,
+		height,
+	})
+
 	const topColors = hexColors.map((hexColor) => {
 		const color = new TinyColor(hexColor)
 		color.setAlpha(0.5)
@@ -138,7 +143,10 @@
 					bottomColor: bottomColors[data[i].color],
 					lineColor: hexColors[data[i].color],
 					priceFormat: {
-						type: 'volume',
+						type: 'custom',
+						formatter: (price: number) => {
+							return Math.round(price)
+						},
 					},
 				})
 				seriesList.push(series)
@@ -152,9 +160,6 @@
 		}
 	}
 
-	// const toolTipWidth = 80
-	// const toolTipHeight = 80
-	// const toolTipMargin = 15
 	let toolTipValues: { name: string; value: number }[] = []
 	let toolTipDateStr = 0
 	let toolTipLeft = 0
@@ -193,32 +198,14 @@
 					value: v,
 				})
 			}
-
-			// const coordinate = seriesList[0].priceToCoordinate(price)
-			// let shiftedCoordinate = param.point.x - 50
-			// if (coordinate === null) {
-			// 	return
-			// }
-			// shiftedCoordinate = Math.max(
-			// 	0,
-			// 	Math.min(container.clientWidth - toolTipWidth, shiftedCoordinate)
-			// )
-			// const coordinateY =
-			// 	coordinate - toolTipHeight - toolTipMargin > 0
-			// 		? coordinate - toolTipHeight - toolTipMargin
-			// 		: Math.max(
-			// 				0,
-			// 				Math.min(
-			// 					container.clientHeight - toolTipHeight - toolTipMargin,
-			// 					coordinate + toolTipMargin
-			// 				)
-			// 		  )
-			// toolTipLeft = shiftedCoordinate
-			// toolTipTop = coordinateY
 		}
 	})
 
 	chart.timeScale().fitContent()
+
+	function onResize() {
+		chart.timeScale().fitContent()
+	}
 
 	onDestroy(() => {
 		for (const series of seriesList) {
@@ -226,6 +213,8 @@
 		}
 	})
 </script>
+
+<svelte:window on:resize={onResize} />
 
 <div class="tooltip" class:hide={!tooltipVisible} style:left={toolTipLeft} style:top={toolTipTop}>
 	<div style="color: white">
