@@ -112,7 +112,7 @@
 
 	function save() {
 		const json: Json = {
-			series,
+			series: series.filter((serie) => !!serie.final),
 			v: jsonTypeVersion,
 		}
 		localStorage.setItem('starchart-series', JSON.stringify(json))

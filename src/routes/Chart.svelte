@@ -201,9 +201,9 @@
 		}
 	})
 
-	chart.timeScale().fitContent()
+	resetZoom()
 
-	function onResize() {
+	function resetZoom() {
 		chart.timeScale().fitContent()
 	}
 
@@ -214,7 +214,7 @@
 	})
 </script>
 
-<svelte:window on:resize={onResize} />
+<svelte:window on:resize={resetZoom} />
 
 <div class="tooltip" class:hide={!tooltipVisible} style:left={toolTipLeft} style:top={toolTipTop}>
 	<div style="color: white">
