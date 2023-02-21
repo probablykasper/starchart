@@ -8,7 +8,9 @@
 </script>
 
 <nav>
-	<h1 class="left">Starchart</h1>
+	<span class="left">
+		<h1>Starchart</h1>
+	</span>
 	<RepoInput bind:owner bind:repo {onSubmit} />
 	<div class="right">
 		<AccessToken />
@@ -50,13 +52,15 @@
 			.right
 				display: flex
 				justify-content: flex-end
+	.left
+		display: flex
 	.right
 		display: flex
 		align-items: center
 		a
 			color: #ffffff
 			cursor: default
+			margin-left: 0.5rem
 		svg
 			vertical-align: middle
-			margin-left: 0.5rem
 </style>

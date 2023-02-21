@@ -9,9 +9,15 @@ body
   padding: 0px 1rem
   @media (min-width: 768px)
     padding: 0px 2rem
-a, h1
-  color: #ffdd00
-  transition: 120ms ease-out all
+h1
+  background: linear-gradient(90deg,#ff2965,#ff29bf 33%,#ef75ff 66%,#908aff)
+  -webkit-background-clip: text
+  -webkit-text-fill-color: transparent
+  &:hover
+    opacity: 0.8
+a
+  // background: linear-gradient(90deg,#ff2965,#ff29bf 33%,#ef75ff 66%,#908aff)
+  color: #a9a8fa
   &:hover
     opacity: 0.8
 h1
@@ -31,7 +37,7 @@ h2
   transition: 120ms ease-out border-color, 80ms ease-out all
   &:focus-visible
     outline: none
-    border-color: #ffdd00
+    border-color: #cbcaf7
 .button
   transition: 120ms ease-out all
   &:hover

@@ -38,7 +38,7 @@
 			use:focus
 		/>
 		<div slot="buttons">
-			<button class="save bordered button rounded yellow">Save</button>
+			<button class="save bordered button rounded highlight">Save</button>
 		</div>
 	</Modal>
 {/if}
@@ -56,11 +56,11 @@
 		margin-left: auto
 		padding-left: 1.5rem
 		padding-right: 1.5rem
-	.yellow
-		background-color: hsla(52, 100%, 18%)
+	.highlight
+		background-color: hsla(243, 100%, 77%, 0.5)
 	input
 		width: 100%
 		&:focus
 			outline: none
-			border-color: #ffdd00
+			border-color: #cbcaf7
 </style>

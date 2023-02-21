@@ -1,7 +1,7 @@
 <script lang="ts" context="module">
 	import { TinyColor } from '@ctrl/tinycolor'
 
-	export const hexColors = ['#ffdd00', '#0064fa', '#E91E63', '#FF9800', '#60ff0a', '#FFFFFF']
+	export const hexColors = ['#E91E63', '#0064fa', '#ffdd00', '#FF9800', '#08fd96', '#FFFFFF']
 
 	let nextColorIndex = 0
 	export function getNextColorIndex() {
@@ -84,9 +84,6 @@
 
 	function toLineSeriesData(series: SeriesData): SeriesDataItemTypeMap['Area'][] {
 		const dataPoints: { date: Date; value?: number }[] = []
-		if (series.final) {
-			console.log(new Date(series.final.t * 1000))
-		}
 
 		const fullSeries = series.final ? [...series.data, series.final] : series.data
 
@@ -137,9 +134,9 @@
 			if (!seriesList[i]) {
 				const series = chart.addAreaSeries({
 					priceLineVisible: false,
-					topColor: topColors[i],
-					bottomColor: bottomColors[i],
-					lineColor: hexColors[i],
+					topColor: topColors[data[i].color],
+					bottomColor: bottomColors[data[i].color],
+					lineColor: hexColors[data[i].color],
 					priceFormat: {
 						type: 'volume',
 					},
@@ -265,7 +262,7 @@
 		webkit-font-smoothing: antialiased
 		moz-osx-font-smoothing: grayscale
 		color: white
-		border-color: #ffdd00
+		border-color: #cbcaf7
 	.hide
 		display: none
 </style>
