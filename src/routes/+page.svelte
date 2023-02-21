@@ -25,6 +25,7 @@
 	type Json = {
 		series: SeriesData[]
 		v: number
+		expiry: number
 	}
 	/** Used to invalidate old localStorage */
 	const jsonTypeVersion = 1
@@ -33,10 +34,10 @@
 	onMount(() => {
 		try {
 			const seriesLocalStorage = JSON.parse(localStorage.getItem('starchart-series') || '[]')
-			if (seriesLocalStorage?.v === jsonTypeVersion) {
-				series = (seriesLocalStorage as Json).series
-			} else {
+			if (seriesLocalStorage?.v !== jsonTypeVersion || seriesLocalStorage?.expiry < Date.now()) {
 				localStorage.removeItem('starchart-series')
+			} else {
+				series = (seriesLocalStorage as Json).series
 			}
 		} catch (_e) {
 			// ignore
@@ -96,11 +97,17 @@
 	}
 
 	function save() {
-		const json: Json = {
-			series: series.filter((serie) => !!serie.final),
-			v: jsonTypeVersion,
+		if (series.length > 0) {
+			const day = 1000 * 60 * 60 * 24
+			const json: Json = {
+				series: series.filter((serie) => !!serie.final),
+				v: jsonTypeVersion,
+				expiry: Date.now() + day * 1,
+			}
+			localStorage.setItem('starchart-series', JSON.stringify(json))
+		} else {
+			localStorage.removeItem('starchart-series')
 		}
-		localStorage.setItem('starchart-series', JSON.stringify(json))
 	}
 
 	let errors: { id: number; msg: string }[] = []

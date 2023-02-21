@@ -51,4 +51,5 @@
 		text-align: center
 	.chart
 		width: 100%
+		padding-bottom: 50px
 </style>
