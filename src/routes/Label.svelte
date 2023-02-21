@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { cubicOut } from 'svelte/easing'
-	import { scale } from 'svelte/transition'
+	import { fade, scale } from 'svelte/transition'
 	import type { SeriesData } from './+page.svelte'
 
 	export let hex: string
@@ -15,7 +15,7 @@
 	in:scale={{ duration: 200, easing: cubicOut, start: 0.75, opacity: 0 }}
 >
 	{serie.name}
-	<button type="button" on:click={onDelete}>
+	<button type="button" class:loading={!serie.final} on:click={onDelete}>
 		<svg
 			fill="currentColor"
 			width="18"
@@ -30,6 +30,11 @@
 				d="m12 10.93 5.719-5.72c.146-.146.339-.219.531-.219.404 0 .75.324.75.749 0 .193-.073.385-.219.532l-5.72 5.719 5.719 5.719c.147.147.22.339.22.531 0 .427-.349.75-.75.75-.192 0-.385-.073-.531-.219l-5.719-5.719-5.719 5.719c-.146.146-.339.219-.531.219-.401 0-.75-.323-.75-.75 0-.192.073-.384.22-.531l5.719-5.719-5.72-5.719c-.146-.147-.219-.339-.219-.532 0-.425.346-.749.75-.749.192 0 .385.073.531.219z"
 			/></svg
 		>
+		{#if !serie.final}
+			<div class="spinner" transition:fade={{ duration: 150 }}>
+				<div class="circle" />
+			</div>
+		{/if}
 	</button>
 </span>
 
@@ -54,4 +59,39 @@
 		transition: all 100ms ease-out
 		&:hover
 			opacity: 0.7
+	.spinner
+		position: absolute
+		width: 100%
+		height: 100%
+		top: 0
+		left: 0
+		display: flex
+		justify-content: center
+		align-items: center
+		transition: all 150ms ease-out
+	svg
+		transition: all 150ms ease-out
+	button.loading
+		svg
+			opacity: 0
+	.serie:hover
+		svg
+			opacity: 1
+		.spinner
+			opacity: 0
+	.circle
+		height: 11px
+		width: 11px
+		border-color: white transparent white white
+		border-width: 1.5px
+		border-style: solid
+		border-image: initial
+		border-radius: 50%
+		animation: 750ms linear 0s infinite normal none running circle-rotate
+
+	@keyframes circle-rotate
+		0%
+			transform: rotate(0)
+		100%
+			transform: rotate(360deg)
 </style>

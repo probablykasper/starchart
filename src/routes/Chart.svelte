@@ -1,17 +1,7 @@
 <script lang="ts" context="module">
 	import { TinyColor } from '@ctrl/tinycolor'
 
-	export const hexColors = ['#ffdd00', '#2491ff', '#60ff0a', '#FFFFFF', '#E91E63', '#FF9800']
-	const topColors = hexColors.map((hexColor) => {
-		const color = new TinyColor(hexColor)
-		color.setAlpha(0.5)
-		return color.saturate(100).toRgbString()
-	})
-	const bottomColors = hexColors.map((hexColor) => {
-		const color = new TinyColor(hexColor)
-		color.setAlpha(0)
-		return color.darken(0).toRgbString()
-	})
+	export const hexColors = ['#ffdd00', '#0064fa', '#E91E63', '#FF9800', '#60ff0a', '#FFFFFF']
 
 	let nextColorIndex = 0
 	export function getNextColorIndex() {
@@ -37,6 +27,17 @@
 	export let data: SeriesData[]
 	export let width: number
 	export let height: number
+
+	const topColors = hexColors.map((hexColor) => {
+		const color = new TinyColor(hexColor)
+		color.setAlpha(0.5)
+		return color.saturate(100).toRgbString()
+	})
+	const bottomColors = hexColors.map((hexColor) => {
+		const color = new TinyColor(hexColor)
+		color.setAlpha(0)
+		return color.darken(0).toRgbString()
+	})
 
 	chart.applyOptions({
 		height,
@@ -83,6 +84,10 @@
 
 	function toLineSeriesData(series: SeriesData): SeriesDataItemTypeMap['Area'][] {
 		const dataPoints: { date: Date; value?: number }[] = []
+		if (series.final) {
+			console.log(new Date(series.final.t * 1000))
+		}
+
 		const fullSeries = series.final ? [...series.data, series.final] : series.data
 
 		for (const dataPoint of fullSeries) {
@@ -124,8 +129,6 @@
 
 	$: update(data)
 	function update(data: SeriesData[]) {
-		console.log(data.length, seriesList.length)
-
 		for (let i = seriesList.length - 1; i > data.length - 1; i--) {
 			chart.removeSeries(seriesList[i])
 			seriesList.pop()
@@ -145,7 +148,9 @@
 			}
 			seriesList[i].setData(toLineSeriesData(data[i]))
 		}
-		console.log(data, seriesList)
+		const lastColor = data[data.length - 1].color
+		const lastColorIndex = hexColors.findIndex((color) => color === hexColors[lastColor])
+		nextColorIndex = (lastColorIndex + 1) % hexColors.length
 	}
 
 	// const toolTipWidth = 80
