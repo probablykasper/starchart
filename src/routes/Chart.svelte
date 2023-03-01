@@ -96,6 +96,10 @@
 		seriesList.splice(i, 1)
 	}
 
+	export function setSeriesVisible(i: number, visible: boolean) {
+		seriesList[i].applyOptions({ visible })
+	}
+
 	function toLineSeriesData(series: SeriesData): SeriesDataItemTypeMap['Area'][] {
 		const dataPoints: { date: Date; value?: number }[] = []
 

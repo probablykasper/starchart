@@ -6,16 +6,39 @@
 	export let hex: string
 	export let serie: SeriesData
 	export let onDelete: () => void
+	let visible = true
+	export let onVisibleChange: (visible: boolean) => void
 </script>
 
+<!-- svelte-ignore a11y-no-noninteractive-tabindex -->
 <span
 	class="serie"
-	style:border-color={hex}
-	style:background-color={hex + '77'}
+	style:--color-1={hex}
+	style:--color-2={hex + '77'}
 	in:scale={{ duration: 200, easing: cubicOut, start: 0.75, opacity: 0 }}
+	class:hidden={!visible}
+	tabindex="0"
+	on:keydown={(e) => {
+		if (e.key === ' ' || e.key === 'Enter') {
+			visible = !visible
+			onVisibleChange(visible)
+		} else if (e.key === 'Backspace' || e.key === 'Delete') {
+			onDelete()
+		}
+	}}
 >
-	{serie.name}
-	<button type="button" class:loading={!serie.final} on:click={onDelete}>
+	<button
+		type="button"
+		class="name"
+		tabindex="-1"
+		on:click={() => {
+			visible = !visible
+			onVisibleChange(visible)
+		}}
+	>
+		{serie.name}
+	</button>
+	<button type="button" class="x" class:loading={!serie.final} on:click={onDelete} tabindex="-1">
 		<svg
 			fill="currentColor"
 			width="18"
@@ -40,25 +63,46 @@
 
 <style lang="sass">
 	.serie
-		padding: 0.1rem 0.5rem
-		padding-right: 0rem
 		border-radius: 8px
 		border: 2px solid
 		margin: 0.25rem
-		font-size: 0.9rem
 		display: inline-flex
 		align-items: center
+		font-size: 0.9rem
 		font-weight: 500
+		transition: 100ms ease-out
+		outline: none
+		background-color: var(--color-2)
+		border-color: var(--color-1)
+		&:focus-visible
+			border-color: hsla(0, 0%, 100%, 1)
 		svg
 			display: block
+	.hidden
+		opacity: 0.5
+		text-decoration: line-through
+		border-style: dashed
 	button
 		background: none
 		border: none
 		color: inherit
+		padding: 0.175rem 0.5rem
+		outline: none
+	button.x
 		position: relative
 		transition: all 100ms ease-out
+		padding-left: 0.2rem
 		&:hover
 			opacity: 0.7
+	.name
+		font-size: 0.875rem
+		font-weight: 500
+		font-family: inherit
+		transition: all 50ms ease-out
+		padding-right: 0.2rem
+		cursor: default
+		&:hover
+			text-decoration: line-through
 	.spinner
 		position: absolute
 		width: 100%

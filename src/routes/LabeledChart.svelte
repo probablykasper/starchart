@@ -34,6 +34,9 @@
 				series = series
 				save()
 			}}
+			onVisibleChange={(visible) => {
+				chartComponent.setSeriesVisible(i, visible)
+			}}
 		/>
 	{/each}
 </div>
