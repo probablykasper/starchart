@@ -10,7 +10,7 @@ import {
 import { writable } from 'svelte/store'
 import { bottomColors, hexColors, topColors } from './color'
 
-type DataPoint = { t: UTCTimestamp; v: number }
+export type DataPoint = { t: UTCTimestamp; v: number }
 type LineJson = {
 	name: string
 	data: DataPoint[]
@@ -129,7 +129,6 @@ export function newChart(container: HTMLElement, options: DeepPartial<ChartOptio
 		},
 
 		appendLineData(line: Line, data: DataPoint[]) {
-			const startTime = Date.now()
 			if (data.length === 0) {
 				return
 			}
@@ -150,7 +149,6 @@ export function newChart(container: HTMLElement, options: DeepPartial<ChartOptio
 			if (fresh) {
 				store.resetZoom()
 			}
-			console.log(Date.now() - startTime)
 
 			set(chart)
 		},

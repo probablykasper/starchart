@@ -4,9 +4,10 @@
 	import { onMount } from 'svelte'
 	import '../app.sass'
 	import Nav from './Nav.svelte'
-	import LabeledChart from './LabeledChart.svelte'
+	import ChartComponent from './Chart.svelte'
 	import { getNextColorIndex, newChart, type Chart } from './chart'
 	import type { UTCTimestamp } from 'lightweight-charts'
+	import Tooltip from './Tooltip.svelte'
 
 	let [owner, repo] = ['', '']
 
@@ -116,11 +117,14 @@
 	</div>
 {/each}
 
+{#if $chart?.lines.length > 0}
+	<ChartComponent {chart} />
+{/if}
 <div class="chart" bind:clientWidth={width}>
-	{#if $chart && $chart.lines.length > 0}
-		<LabeledChart {chart} />
-	{/if}
 	<div bind:this={container} class:hidden={!$chart || $chart.lines.length === 0} />
+	{#if $chart?.lines.length > 0}
+		<Tooltip {chart} />
+	{/if}
 </div>
 
 <style lang="sass">
@@ -151,7 +155,8 @@
 				opacity: 0.7
 	.chart
 		width: 100%
-		padding-bottom: 50px
+		margin-bottom: 50px
+		position: relative // for tooltip
 	.hidden
 		display: none
 </style>
