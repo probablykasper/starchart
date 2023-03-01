@@ -16,7 +16,6 @@
 	function focusDefault(el: HTMLDivElement) {
 		if (!el.contains(document.activeElement)) {
 			el.focus()
-			console.log('focd', el)
 		}
 	}
 	function close() {

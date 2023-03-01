@@ -1,4 +1,5 @@
 import { Octokit } from '@octokit/core'
+import { GraphqlResponseError } from '@octokit/graphql'
 import { PUBLIC_PAT } from '$env/static/public'
 import { get, writable } from 'svelte/store'
 import { browser } from '$app/environment'
@@ -67,21 +68,12 @@ export async function fetchStargazersPage(
 	)
 
 	const response = await responsePromise.catch((error) => {
-		console.error(error)
-		const response = error?.response
-		const status = error?.response?.status
-		console.log('status', status)
-		const message = error?.response?.data?.message || ''
-		if (!response) {
+		if (error instanceof GraphqlResponseError && error.errors) {
 			return {
-				error: typeof error.message === 'string' ? (error.message as string) : 'Unknown error',
+				error: error.errors.map((error) => error.message).join('/n'),
 			}
-		} else if (status === 404) {
-			return { error: `Repo ${owner}/${repo} not found` }
-		} else if (status === 403) {
-			return { error: 'GitHub rate limit exceeded' }
-		} else if (status !== undefined) {
-			return { error: [`Couldn't fetch stargazers, code ${status}`, message].join(': ') }
+		} else if (error instanceof Error) {
+			return { error: `${error.name}: ${error.message}` }
 		} else {
 			return { error: "Couldn't fetch stargazers" }
 		}

@@ -1,73 +1,39 @@
-<script lang="ts" context="module">
-	import type { UTCTimestamp } from 'lightweight-charts'
-
-	export type DataPoint = { t: UTCTimestamp; v: number }
-	export type SeriesData = {
-		name: string
-		data: DataPoint[]
-		color: number
-		/** Loading if absent */
-		final?: DataPoint
-	}
-</script>
-
 <script lang="ts">
 	import { fly, slide } from 'svelte/transition'
 	import { fetchStargazersPage } from './github'
 	import { onMount } from 'svelte'
-	import { getNextColorIndex } from './Chart.svelte'
 	import '../app.sass'
 	import Nav from './Nav.svelte'
 	import LabeledChart from './LabeledChart.svelte'
+	import { getNextColorIndex, newChart, type Chart } from './chart'
+	import type { UTCTimestamp } from 'lightweight-charts'
 
 	let [owner, repo] = ['', '']
 
-	type Json = {
-		series: SeriesData[]
-		v: number
-		expiry: number
-	}
-	/** Used to invalidate old localStorage */
-	const jsonTypeVersion = 1
-
-	let series: SeriesData[] = []
-	onMount(() => {
-		try {
-			const seriesLocalStorage = JSON.parse(localStorage.getItem('starchart-series') || '[]')
-			if (seriesLocalStorage?.v !== jsonTypeVersion || seriesLocalStorage?.expiry < Date.now()) {
-				localStorage.removeItem('starchart-series')
-			} else {
-				series = (seriesLocalStorage as Json).series
-			}
-		} catch (_e) {
-			// ignore
-		}
-	})
+	let chart: Chart
 
 	async function getStargazers(owner: string, repo: string) {
-		for (const serie of series) {
-			if (serie.name === `${owner}/${repo}`) {
+		for (const line of $chart.lines) {
+			if (line.name === `${owner}/${repo}`) {
 				return // already added
 			}
 		}
 		let count = 0
 		let endCursor: string | undefined
-		const newSerie: SeriesData = {
+		const line = chart.addLine({
 			name: `${owner}/${repo}`,
 			color: getNextColorIndex(),
 			data: [],
-		}
+		})
 		let totalCount = 0
-		series.push(newSerie) // don't trigger store update yet
 		do {
-			if (!series.find((serie) => serie.name === newSerie.name)) {
-				// abort
-				return
+			if (line.deleted) {
+				return // abort
 			}
 			const { error, stargazers } = await fetchStargazersPage(owner, repo, 'forward', endCursor)
 			if (!stargazers) {
 				addError(error)
-				series = series.filter((serie) => serie.name !== newSerie.name)
+				chart.deleteLine(line)
 				return
 			}
 
@@ -85,39 +51,38 @@
 					v: count,
 				}
 			})
-
-			newSerie.data = [...newSerie.data, ...newData]
-			series = series
+			chart.appendLineData(line, newData)
 		} while (endCursor)
-		newSerie.final = {
+		line.final = {
 			t: Math.ceil(new Date().getTime() / 1000) as UTCTimestamp,
 			v: totalCount,
 		}
-		save()
-	}
-
-	function save() {
-		if (series.length > 0) {
-			const day = 1000 * 60 * 60 * 24
-			const json: Json = {
-				series: series.filter((serie) => !!serie.final),
-				v: jsonTypeVersion,
-				expiry: Date.now() + day * 1,
-			}
-			localStorage.setItem('starchart-series', JSON.stringify(json))
-		} else {
-			localStorage.removeItem('starchart-series')
-		}
+		chart.appendLineData(line, [line.final])
+		chart.save()
 	}
 
 	let errors: { id: number; msg: string }[] = []
-
 	function addError(msg: string) {
 		const id = Math.random()
 		errors.push({ id, msg })
 		errors = errors
 		return id
 	}
+
+	let width: number
+	let height: number
+	$: if (width) {
+		height = Math.round(width * 0.6)
+	}
+
+	let container: HTMLDivElement
+	onMount(() => {
+		chart = newChart(container, { width, height })
+	})
+	$: $chart?.instance.applyOptions({
+		width,
+		height,
+	})
 </script>
 
 <Nav bind:owner bind:repo onSubmit={() => getStargazers(owner, repo)} />
@@ -151,20 +116,26 @@
 	</div>
 {/each}
 
-<LabeledChart bind:series {save} />
+<div class="chart" bind:clientWidth={width}>
+	{#if $chart && $chart.lines.length > 0}
+		<LabeledChart {chart} />
+	{/if}
+	<div bind:this={container} class:hidden={!$chart || $chart.lines.length === 0} />
+</div>
 
 <style lang="sass">
 	.error-container
 		padding-bottom: 1rem
 	.error
-		border: 1px solid hsla(0, 100%, 50%, 0.5)
+		border: 2px solid hsla(0, 100%, 50%, 0.5)
 		background-color: hsla(0, 100%, 50%, 0.25)
-		color: hsl(0, 100%, 66%)
+		// color: hsl(0, 100%, 66%)
 		border-radius: 8px
 		padding: 0.75rem 1rem
+		font-weight: 500
 		margin: 0rem auto
 		max-width: 650px
-		font-size: 0.9rem
+		font-size: 0.875rem
 		position: relative
 		text-align: initial
 		button
@@ -175,7 +146,12 @@
 			position: absolute
 			top: 0px
 			right: 0px
-			padding: 0.2rem
+			padding: 0.2rem 0.25rem
 			&:hover
 				opacity: 0.7
+	.chart
+		width: 100%
+		padding-bottom: 50px
+	.hidden
+		display: none
 </style>
