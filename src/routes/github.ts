@@ -42,7 +42,7 @@ export async function fetchStargazersPage(
 	}>(
 		`query($owner: String!, $repo: String!, $first: Int, $last: Int, $after: String, $before: String) {
 				repository(owner: $owner, name: $repo) {
-					stargazers(first: $first, last: $last, after: $after, before: $before) {
+					stargazers(first: $first, last: $last, after: $after, before: $before, orderBy: {field: STARRED_AT, direction: ASC}) {
 						totalCount
 						pageInfo {
 							startCursor
