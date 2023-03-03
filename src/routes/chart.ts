@@ -190,7 +190,11 @@ function getFiller(data: Line[]) {
 	}
 	return dates.map((date) => {
 		return {
-			time: (date.getTime() / 1000) as UTCTimestamp,
+			time: {
+				year: date.getFullYear(),
+				month: date.getMonth() + 1,
+				day: date.getDate(),
+			},
 		}
 	})
 }
@@ -248,7 +252,11 @@ function toChartSeries(data: DataPoint[], start: DataPoint, final: DataPoint) {
 
 	return dataPoints.map((dataPoint) => {
 		return {
-			time: (dataPoint.date.getTime() / 1000) as UTCTimestamp,
+			time: {
+				year: dataPoint.date.getFullYear(),
+				month: dataPoint.date.getMonth() + 1,
+				day: dataPoint.date.getDate(),
+			},
 			value: dataPoint.value,
 		} satisfies SingleValueData
 	})

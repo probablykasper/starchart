@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { MouseEventParams, UTCTimestamp } from 'lightweight-charts'
+	import type { BusinessDay, MouseEventParams, UTCTimestamp } from 'lightweight-charts'
 	import { onDestroy } from 'svelte'
 	import type { Chart, DataPoint, Line } from './chart'
 	import { hexColors } from './color'
@@ -67,10 +67,16 @@
 			return
 		}
 		// time is in the same format that we supplied to setData
-		const time = param.time as UTCTimestamp
+		if (typeof param.time !== 'object') {
+			console.error('time is not a BusinessDay:', param.time)
+			return
+		}
+		const time = param.time as BusinessDay
 
 		for (const line of $chart.lines) {
-			const dataPoint = findDayEndDataPoint(line.data, time)
+			const maxDate = new Date(time.year, time.month - 1, time.day, 23, 59, 59, 999)
+			const maxTimestamp = (maxDate.getTime() / 1000) as UTCTimestamp
+			const dataPoint = findDayEndDataPoint(line.data, maxTimestamp)
 			if (dataPoint) {
 				values.push({
 					line: line,
