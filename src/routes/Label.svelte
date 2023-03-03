@@ -66,7 +66,6 @@
 	.serie
 		border-radius: 8px
 		border: 2px solid
-		margin: 0.25rem
 		display: inline-flex
 		align-items: center
 		font-size: 0.9rem
@@ -92,7 +91,7 @@
 	button.x
 		position: relative
 		transition: all 100ms ease-out
-		padding-left: 0.2rem
+		padding-left: 0.1rem
 		&:hover
 			opacity: 0.7
 	.name

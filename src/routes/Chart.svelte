@@ -69,4 +69,9 @@
 <style lang="sass">
 	.labels
 		text-align: center
+		display: flex
+		flex-wrap: wrap
+		justify-content: center
+		gap: 8px
+		padding-bottom: 14px
 </style>

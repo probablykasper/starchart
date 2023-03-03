@@ -8,11 +8,13 @@
 </script>
 
 <nav>
-	<span class="left">
+	<span class="logo">
 		<h1>Starchart</h1>
 	</span>
-	<RepoInput bind:owner bind:repo {onSubmit} />
-	<div class="right">
+	<div class="repo-input first">
+		<RepoInput bind:owner bind:repo {onSubmit} />
+	</div>
+	<div class="menu">
 		<AccessToken />
 		<a href="https://github.com/probablykasper/starchart">
 			<svg
@@ -33,30 +35,58 @@
 			>
 		</a>
 	</div>
+	<div class="repo-input second">
+		<RepoInput bind:owner bind:repo {onSubmit} />
+	</div>
 </nav>
 
 <style lang="sass">
+	h1
+		margin: 20px 0px
 	nav
-		display: flex
-		width: 100%
-		padding-top: 0.25rem
-		padding-bottom: 1rem
-		flex-direction: column
-		align-items: center
-		justify-content: center
+		display: grid
+		grid-template-areas: "left right" "mid mid"
+		grid-template-columns: 1fr 1fr
+		// width: 100%
+		// padding-top: 0.25rem
+		// padding-bottom: 1rem
+
+		// display: flex
+		// align-items: center
+		// flex-direction: column
+		// justify-content: center
+		.repo-input.first
+			display: none
+		.repo-input.second
+			margin-bottom: 20px
 		@media (min-width: 768px)
-			flex-direction: row
-			justify-content: space-between
-			.left, .right
-				width: 12rem
-			.right
+			display: grid
+			grid-template-areas: "left mid right"
+			grid-template-columns: 192px 1fr 192px
+			gap: 10px
+			.repo-input.first
 				display: flex
-				justify-content: flex-end
-	.left
+			.repo-input.second
+				display: none
+			// display: flex
+			// flex-direction: row
+			// justify-content: space-between
+			// .left, .right
+			// 	width: 192px
+			// .right
+			// 	display: flex
+			// 	justify-content: flex-end
+	.logo
 		display: flex
-	.right
+		grid-area: left
+	.repo-input
+		grid-area: mid
+	.menu
 		display: flex
 		align-items: center
+		margin: 20px 0px
+		grid-area: right
+		justify-content: right
 		a
 			color: #ffffff
 			cursor: default

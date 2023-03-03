@@ -56,11 +56,14 @@
 		margin-left: auto
 		padding-left: 1.5rem
 		padding-right: 1.5rem
+		border-color: #7d7da7
+		&:focus-visible
+			border-color: #cbcaf7
 	.highlight
 		background-color: hsla(243, 100%, 77%, 0.5)
 	input
 		width: 100%
-		&:focus
+		&:focus-visible
 			outline: none
 			border-color: #cbcaf7
 </style>
