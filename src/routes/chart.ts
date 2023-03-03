@@ -21,6 +21,7 @@ type LineBase = {
 export interface Line extends LineBase {
 	instance: ISeriesApi<'Area'>
 	deleted: boolean
+	hidden?: boolean
 }
 
 type LineJson = {

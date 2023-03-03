@@ -57,9 +57,6 @@
 				chart.deleteLine(line)
 				chart.save()
 			}}
-			onVisibleChange={(visible) => {
-				line.instance.applyOptions({ visible })
-			}}
 		/>
 	{/each}
 </div>

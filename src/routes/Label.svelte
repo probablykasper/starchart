@@ -7,8 +7,6 @@
 	export let line: Line
 	$: hex = hexColors[line.color]
 	export let onDelete: () => void
-	let visible = true
-	export let onVisibleChange: (visible: boolean) => void
 </script>
 
 <!-- svelte-ignore a11y-no-noninteractive-tabindex -->
@@ -17,14 +15,16 @@
 	style:--color-1={hex}
 	style:--color-2={hex + '77'}
 	in:scale={{ duration: 200, easing: cubicOut, start: 0.75, opacity: 0 }}
-	class:hidden={!visible}
+	class:hidden={line.hidden}
 	tabindex="0"
 	on:keydown={(e) => {
 		if (e.key === ' ' || e.key === 'Enter') {
-			visible = !visible
-			onVisibleChange(visible)
+			line.hidden = !line.hidden
+			line.instance.applyOptions({ visible: !line.hidden })
+			e.preventDefault()
 		} else if (e.key === 'Backspace' || e.key === 'Delete') {
 			onDelete()
+			e.preventDefault()
 		}
 	}}
 >
@@ -33,8 +33,8 @@
 		class="name"
 		tabindex="-1"
 		on:click={() => {
-			visible = !visible
-			onVisibleChange(visible)
+			line.hidden = !line.hidden
+			line.instance.applyOptions({ visible: !line.hidden })
 		}}
 	>
 		{line.name}
