@@ -41,7 +41,7 @@ export function getNextColorIndex() {
 function loadJsonLines(): LineJson[] {
 	try {
 		const seriesLocalStorage = JSON.parse(localStorage.getItem('starchart-series') || '{}')
-		if (seriesLocalStorage?.v === jsonTypeVersion || seriesLocalStorage?.expiry > Date.now()) {
+		if (seriesLocalStorage?.v === jsonTypeVersion && seriesLocalStorage?.expiry > Date.now()) {
 			return (seriesLocalStorage as Json).lines
 		} else {
 			localStorage.removeItem('starchart-series')
