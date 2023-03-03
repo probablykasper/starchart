@@ -17,8 +17,6 @@
 		const bounds = $chart.container.getBoundingClientRect()
 		const x = e.clientX - bounds.left
 		const y = e.clientY - bounds.top
-		// console.log(bounds.left)
-		// console.log(e.clientX - bounds.left, e.clientY - bounds.top)
 		left = x + margin
 		if (left > $chart.container.clientWidth - width) {
 			left = x - width - margin
@@ -68,24 +66,9 @@
 		// time is in the same format that we supplied to setData
 		const time = param.time as UTCTimestamp
 
-		// left = param.point.x + margin
-		// if (left > $chart.container.clientWidth - width) {
-		// 	left = param.point.x - margin - width
-		// }
-
-		// top = param.point.y + margin
-		// if (top > $chart.container.clientHeight - height) {
-		// 	top = param.point.y - height - margin
-		// }
-
 		for (const line of $chart.lines) {
 			const dataPoint = findHighestDataPoint(line.data, time)
 			if (dataPoint) {
-				// const date = new Date(dataPoint.t * 1000)
-				// console.log(
-				// 	`${line.name} ${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`,
-				// 	dataPoint.v
-				// )
 				values.push({
 					line: line,
 					value: dataPoint.v,

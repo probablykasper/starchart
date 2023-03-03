@@ -93,14 +93,6 @@ export function newChart(container: HTMLElement, options: DeepPartial<ChartOptio
 				},
 			})
 
-			// series.removePriceLine()
-			// series.createPriceLine({
-			// 	price: 800,
-			// 	color: '#be1238',
-			// 	lineWidth: 1,
-			// 	lineStyle: LineStyle.Dashed,
-			// })
-
 			if (lineJson.data.length >= 1) {
 				const start = lineJson.data[0]
 				const end = lineJson.final ?? lineJson.data[lineJson.data.length - 1]
