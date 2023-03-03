@@ -4,7 +4,7 @@ import {
 	type DeepPartial,
 	type IChartApi,
 	type ISeriesApi,
-	type SeriesDataItemTypeMap,
+	type SingleValueData,
 	type UTCTimestamp,
 } from 'lightweight-charts'
 import { writable } from 'svelte/store'
@@ -40,14 +40,14 @@ export function getNextColorIndex() {
 
 function loadJsonLines(): LineJson[] {
 	try {
-		const seriesLocalStorage = JSON.parse(localStorage.getItem('starchart-series') || '[]')
-		if (seriesLocalStorage?.v !== jsonTypeVersion || seriesLocalStorage?.expiry < Date.now()) {
-			localStorage.removeItem('starchart-series')
-		} else {
+		const seriesLocalStorage = JSON.parse(localStorage.getItem('starchart-series') || '{}')
+		if (seriesLocalStorage?.v === jsonTypeVersion || seriesLocalStorage?.expiry > Date.now()) {
 			return (seriesLocalStorage as Json).lines
+		} else {
+			localStorage.removeItem('starchart-series')
 		}
-	} catch (_e) {
-		// ignore
+	} catch (e) {
+		console.log('Could not load lines', e)
 	}
 	return []
 }
@@ -96,7 +96,7 @@ export function newChart(container: HTMLElement, options: DeepPartial<ChartOptio
 			if (lineJson.data.length >= 1) {
 				const start = lineJson.data[0]
 				const end = lineJson.final ?? lineJson.data[lineJson.data.length - 1]
-				const chartData = toChartData(lineJson.data, start, end)
+				const chartData = toChartSeries(lineJson.data, start, end)
 				series.setData(chartData)
 			}
 			const line: Line = {
@@ -126,7 +126,7 @@ export function newChart(container: HTMLElement, options: DeepPartial<ChartOptio
 			}
 			const start = line.data[line.data.length - 1] ?? data[0]
 			const end = line.final ?? data[data.length - 1]
-			const chartData = toChartData(data, start, end)
+			const chartData = toChartSeries(data, start, end)
 			const fresh = line.data.length === 0
 
 			if (fresh) {
@@ -215,9 +215,8 @@ function save(chart: ChartData) {
 	localStorage.setItem('starchart-series', JSON.stringify(json))
 }
 
-type Series = SeriesDataItemTypeMap['Area'][]
-function toChartData(data: DataPoint[], start: DataPoint, final: DataPoint): Series {
-	const dataPoints: { date: Date; value?: number }[] = []
+function toChartSeries(data: DataPoint[], start: DataPoint, final: DataPoint) {
+	const dataPoints: { date: Date; value: number }[] = []
 
 	for (const dataPoint of [start, ...data, final]) {
 		const dt = new Date(dataPoint.t * 1000)
@@ -248,10 +247,9 @@ function toChartData(data: DataPoint[], start: DataPoint, final: DataPoint): Ser
 	}
 
 	return dataPoints.map((dataPoint) => {
-		const dp: SeriesDataItemTypeMap['Area'] = {
+		return {
 			time: (dataPoint.date.getTime() / 1000) as UTCTimestamp,
 			value: dataPoint.value,
-		}
-		return dp
+		} satisfies SingleValueData
 	})
 }
