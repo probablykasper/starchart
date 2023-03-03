@@ -35,7 +35,8 @@
 		$chart.container.removeEventListener('mousemove', onMouseMove)
 	})
 
-	function findDayEndDataPoint(arr: DataPoint[], max: UTCTimestamp) {
+	/** Binary search */
+	function findLatestDataPoint(arr: DataPoint[], max: UTCTimestamp) {
 		let start = 0
 		let end = arr.length - 1
 		let result: DataPoint | null = null
@@ -53,8 +54,7 @@
 		return result
 	}
 
-	// update tooltip
-	function mouseEventHandler(param: MouseEventParams) {
+	function updateTooltipOnMouseEvent(param: MouseEventParams) {
 		values = []
 		if (
 			param.point === undefined ||
@@ -76,7 +76,8 @@
 		for (const line of $chart.lines) {
 			const maxDate = new Date(time.year, time.month - 1, time.day, 23, 59, 59, 999)
 			const maxTimestamp = (maxDate.getTime() / 1000) as UTCTimestamp
-			const dataPoint = findDayEndDataPoint(line.data, maxTimestamp)
+			const dataPoint = findLatestDataPoint(line.data, maxTimestamp)
+
 			if (dataPoint) {
 				values.push({
 					line: line,
@@ -87,9 +88,9 @@
 		values.sort((a, b) => b.value - a.value)
 		values = values
 	}
-	$chart.instance.subscribeCrosshairMove(mouseEventHandler)
+	$chart.instance.subscribeCrosshairMove(updateTooltipOnMouseEvent)
 	onDestroy(() => {
-		$chart.instance.unsubscribeCrosshairMove(mouseEventHandler)
+		$chart.instance.unsubscribeCrosshairMove(updateTooltipOnMouseEvent)
 	})
 </script>
 

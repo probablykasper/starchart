@@ -11,20 +11,29 @@ import { writable } from 'svelte/store'
 import { bottomColors, hexColors, topColors } from './color'
 
 export type DataPoint = { t: UTCTimestamp; v: number }
-type LineJson = {
+type LineBase = {
 	name: string
 	data: DataPoint[]
 	color: number
 	/** Loading if absent */
 	final?: DataPoint
 }
-export interface Line extends LineJson {
+export interface Line extends LineBase {
 	instance: ISeriesApi<'Area'>
 	deleted: boolean
 }
 
+type LineJson = {
+	name: string
+	/** Star count = index + 1 */
+	data: UTCTimestamp[]
+	color: number
+	/** Loading if absent */
+	final?: DataPoint
+}
+
 /** Used to invalidate old localStorage */
-const jsonTypeVersion = 2
+const jsonTypeVersion = 3
 type Json = {
 	lines: LineJson[]
 	v: number
@@ -38,11 +47,24 @@ export function getNextColorIndex() {
 	return value
 }
 
-function loadJsonLines(): LineJson[] {
+function loadJsonLines(): LineBase[] {
 	try {
 		const seriesLocalStorage = JSON.parse(localStorage.getItem('starchart-series') || '{}')
 		if (seriesLocalStorage?.v === jsonTypeVersion && seriesLocalStorage?.expiry > Date.now()) {
-			return (seriesLocalStorage as Json).lines
+			const lines = (seriesLocalStorage as Json).lines
+			return lines.map(
+				(line): LineBase => ({
+					color: line.color,
+					data: line.data.map((utcTimestamp, i): DataPoint => {
+						return {
+							t: utcTimestamp,
+							v: i + 1,
+						}
+					}),
+					final: line.final,
+					name: line.name,
+				})
+			)
 		} else {
 			localStorage.removeItem('starchart-series')
 		}
@@ -79,7 +101,7 @@ export function newChart(container: HTMLElement, options: DeepPartial<ChartOptio
 	const store = {
 		subscribe,
 
-		addLine(lineJson: LineJson) {
+		addLine(lineJson: LineBase) {
 			const series = chart.instance.addAreaSeries({
 				priceLineVisible: false,
 				topColor: topColors[lineJson.color],
@@ -120,7 +142,7 @@ export function newChart(container: HTMLElement, options: DeepPartial<ChartOptio
 			set(chart)
 		},
 
-		appendLineData(line: Line, data: DataPoint[]) {
+		_appendChartData(line: Line, data: DataPoint[]) {
 			if (data.length === 0) {
 				return
 			}
@@ -136,12 +158,22 @@ export function newChart(container: HTMLElement, options: DeepPartial<ChartOptio
 					line.instance.update(dataPoint)
 				}
 			}
-			line.data.push(...data)
+
 			updateFiller(chart.lines)
 			if (fresh) {
 				store.resetZoom()
 			}
+		},
 
+		appendStargazers(line: Line, data: DataPoint[]) {
+			store._appendChartData(line, data)
+			line.data.push(...data)
+			set(chart)
+		},
+
+		addFinal(line: Line, data: DataPoint) {
+			store._appendChartData(line, [data])
+			line.final = data
 			set(chart)
 		},
 
@@ -175,11 +207,12 @@ function getFiller(data: Line[]) {
 			lowestDate = dataPoint.t
 		}
 	}
+	const now = new Date()
 	const dt = new Date(lowestDate * 1000)
 	const date = new Date(dt.getFullYear(), dt.getMonth(), dt.getDate())
 
 	const dates = [date]
-	while (dates[dates.length - 1] < new Date()) {
+	while (dates[dates.length - 1] < now) {
 		dates.push(
 			new Date(
 				dates[dates.length - 1].getFullYear(),
@@ -199,18 +232,21 @@ function getFiller(data: Line[]) {
 	})
 }
 
+const day = 1000 * 60 * 60 * 24
 function save(chart: ChartData) {
 	if (chart.lines.length === 0) {
 		localStorage.removeItem('starchart-series')
 		return
 	}
-	const day = 1000 * 60 * 60 * 24
-	const jsonLines: LineJson[] = chart.lines.map((line) => ({
-		name: line.name,
-		data: line.data,
-		color: line.color,
-		final: line.final,
-	}))
+
+	const jsonLines = chart.lines.map(
+		(line): LineJson => ({
+			name: line.name,
+			data: line.data.map((dataPoint) => dataPoint.t),
+			color: line.color,
+			final: line.final,
+		})
+	)
 	const json: Json = {
 		lines: jsonLines,
 		v: jsonTypeVersion,

@@ -48,17 +48,16 @@
 			const newData = stargazers.starTimes.map((starTime) => {
 				count++
 				return {
-					t: Math.ceil(new Date(starTime).getTime() / 1000) as UTCTimestamp,
+					t: Math.floor(new Date(starTime).getTime() / 1000) as UTCTimestamp,
 					v: count,
 				}
 			})
-			chart.appendLineData(line, newData)
+			chart.appendStargazers(line, newData)
 		} while (endCursor)
-		line.final = {
-			t: Math.ceil(new Date().getTime() / 1000) as UTCTimestamp,
+		chart.addFinal(line, {
+			t: Math.floor(new Date().getTime() / 1000) as UTCTimestamp,
 			v: totalCount,
-		}
-		chart.appendLineData(line, [line.final])
+		})
 		chart.save()
 	}
 
