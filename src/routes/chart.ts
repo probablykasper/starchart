@@ -33,7 +33,7 @@ type LineJson = {
 }
 
 /** Used to invalidate old localStorage */
-const jsonTypeVersion = 3
+const jsonTypeVersion = 2
 type Json = {
 	lines: LineJson[]
 	v: number
@@ -158,22 +158,23 @@ export function newChart(container: HTMLElement, options: DeepPartial<ChartOptio
 					line.instance.update(dataPoint)
 				}
 			}
-
-			updateFiller(chart.lines)
-			if (fresh) {
-				store.resetZoom()
-			}
 		},
 
 		appendStargazers(line: Line, data: DataPoint[]) {
+			const fresh = line.data.length === 0
 			store._appendChartData(line, data)
 			line.data.push(...data)
+			if (fresh) {
+				updateFiller(chart.lines)
+				store.resetZoom()
+			}
 			set(chart)
 		},
 
 		addFinal(line: Line, data: DataPoint) {
 			store._appendChartData(line, [data])
 			line.final = data
+			updateFiller(chart.lines)
 			set(chart)
 		},
 
