@@ -13,17 +13,20 @@
 	let left: number
 	let top: number
 
+	$: starScale = $chart.instance.priceScale('right')
+	$: timeScale = $chart.instance.timeScale()
+
 	function onMouseMove(e: MouseEvent) {
 		const bounds = $chart.container.getBoundingClientRect()
 		const x = e.clientX - bounds.left
 		const y = e.clientY - bounds.top
 		left = x + margin
-		if (left > $chart.container.clientWidth - width) {
+		if (left > $chart.container.clientWidth - width - starScale.width()) {
 			left = x - width - margin
 		}
 
 		top = y + margin
-		if (top > $chart.container.clientHeight - height) {
+		if (top > $chart.container.clientHeight - height - timeScale.height()) {
 			top = y - height - margin
 		}
 	}
@@ -32,7 +35,7 @@
 		$chart.container.removeEventListener('mousemove', onMouseMove)
 	})
 
-	function findHighestDataPoint(arr: DataPoint[], max: UTCTimestamp) {
+	function findDayEndDataPoint(arr: DataPoint[], max: UTCTimestamp) {
 		let start = 0
 		let end = arr.length - 1
 		let result: DataPoint | null = null
@@ -67,7 +70,7 @@
 		const time = param.time as UTCTimestamp
 
 		for (const line of $chart.lines) {
-			const dataPoint = findHighestDataPoint(line.data, time)
+			const dataPoint = findDayEndDataPoint(line.data, time)
 			if (dataPoint) {
 				values.push({
 					line: line,
