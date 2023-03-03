@@ -2,7 +2,7 @@
 	import type { BusinessDay, MouseEventParams, UTCTimestamp } from 'lightweight-charts'
 	import { onDestroy } from 'svelte'
 	import type { Chart, DataPoint, Line } from './chart'
-	import { hexColors } from './color'
+	import { brightColors } from './color'
 
 	export let chart: Chart
 
@@ -109,16 +109,18 @@
 	bind:clientHeight={height}
 >
 	<table>
-		<tbody>
-			{#each values as tooltipValue}
+		{#each values as tooltipValue}
+			{#if !tooltipValue.line.hidden}
 				<tr>
-					<td style:color={hexColors[tooltipValue.line.color]}>{tooltipValue.line.name}</td>
+					<td class="name" style:color={brightColors[tooltipValue.line.color]}
+						>{tooltipValue.line.name}</td
+					>
 					<td class="value">
 						{tooltipValue.value}
 					</td>
 				</tr>
-			{/each}
-		</tbody>
+			{/if}
+		{/each}
 	</table>
 </div>
 
@@ -134,7 +136,7 @@
 		box-sizing: border-box
 		border: 2px solid
 		border-radius: 8px
-		background-color: hsla(230, 0%, 0%, 0.4)
+		background-color: hsla(230, 0%, 0%, 0.45)
 		backdrop-filter: blur(3px)
 		border-color: hsla(241, 74%, 88%, 0.25)
 	.hide

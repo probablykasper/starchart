@@ -25,3 +25,8 @@ export const bottomColors = colors.map((hexColor) => {
 	color.setAlpha(0)
 	return color.darken(0).toHslString()
 })
+
+export const brightColors = colors.map((hexColor) => {
+	const color = new TinyColor(hexColor)
+	return color.brighten(10).toHslString()
+})
