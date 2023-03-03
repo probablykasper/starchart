@@ -16,7 +16,11 @@
 	$: starScale = $chart.instance.priceScale('right')
 	$: timeScale = $chart.instance.timeScale()
 
-	function onMouseMove(e: MouseEvent) {
+	function onTouchMove() {
+		left = 10
+		top = 10
+	}
+	function onMouseMove(e: { clientX: number; clientY: number }) {
 		const bounds = $chart.container.getBoundingClientRect()
 		const x = e.clientX - bounds.left
 		const y = e.clientY - bounds.top
@@ -31,8 +35,10 @@
 		}
 	}
 	$chart.container.addEventListener('mousemove', onMouseMove)
+	$chart.container.addEventListener('touchmove', onTouchMove)
 	onDestroy(() => {
 		$chart.container.removeEventListener('mousemove', onMouseMove)
+		$chart.container.removeEventListener('touchmove', onTouchMove)
 	})
 
 	/** Binary search */
