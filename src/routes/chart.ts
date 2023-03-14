@@ -232,6 +232,7 @@ export function newChart(container: HTMLElement, options: DeepPartial<ChartOptio
 				},
 			})
 			updateFiller(chart.lines)
+			this.resetZoom()
 			set(chart)
 		},
 
@@ -248,6 +249,7 @@ export function newChart(container: HTMLElement, options: DeepPartial<ChartOptio
 				line.lastChartSeriesDate = chartSeries[chartSeries.length - 1].time
 			}
 			setDefaultFormatting()
+			this.resetZoom()
 			set(chart)
 		},
 
