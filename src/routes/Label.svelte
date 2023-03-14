@@ -71,7 +71,7 @@
 		font-size: 0.9rem
 		font-weight: 500
 		transition: 100ms ease-out
-		outline: none
+		outline: 1px solid transparent
 		background-color: var(--color-2)
 		border-color: var(--color-1)
 		&:focus-visible
@@ -87,7 +87,7 @@
 		border: none
 		color: inherit
 		padding: 0.175rem 0.5rem
-		outline: none
+		outline: 1px solid transparent
 	button.x
 		position: relative
 		transition: all 100ms ease-out

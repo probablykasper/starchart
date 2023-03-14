@@ -70,5 +70,6 @@
 		flex-wrap: wrap
 		justify-content: center
 		gap: 8px
+		padding-top: 8px
 		padding-bottom: 14px
 </style>

@@ -42,24 +42,18 @@
 
 <style lang="sass">
 	h1
-		margin: 20px 0px
+		margin: 0px
 	nav
 		display: grid
+		padding-top: 20px
+		padding-bottom: 14px
 		grid-template-areas: "left right" "mid mid"
 		grid-template-columns: 1fr 1fr
-		// width: 100%
-		// padding-top: 0.25rem
-		// padding-bottom: 1rem
-
-		// display: flex
-		// align-items: center
-		// flex-direction: column
-		// justify-content: center
 		.repo-input.first
 			display: none
 		.repo-input.second
-			margin-bottom: 20px
-		@media (min-width: 768px)
+			margin-top: 20px
+		@media (min-width: 896px)
 			display: grid
 			grid-template-areas: "left mid right"
 			grid-template-columns: 192px 1fr 192px
@@ -68,14 +62,6 @@
 				display: flex
 			.repo-input.second
 				display: none
-			// display: flex
-			// flex-direction: row
-			// justify-content: space-between
-			// .left, .right
-			// 	width: 192px
-			// .right
-			// 	display: flex
-			// 	justify-content: flex-end
 	.logo
 		display: flex
 		grid-area: left
@@ -84,7 +70,6 @@
 	.menu
 		display: flex
 		align-items: center
-		margin: 20px 0px
 		grid-area: right
 		justify-content: right
 		a

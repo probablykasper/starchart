@@ -19,7 +19,7 @@
 		class:yellow={!$token}
 		on:click={() => (editToken = true)}
 	>
-		{$token ? 'Edit' : 'Add'} access token
+		{$token ? 'Auth token' : 'Set auth token'}
 	</button>
 {/if}
 {#if editToken}
@@ -64,6 +64,6 @@
 	input
 		width: 100%
 		&:focus-visible
-			outline: none
+			outline: 1px solid transparent
 			border-color: #cbcaf7
 </style>

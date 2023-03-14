@@ -11,9 +11,13 @@
 
 	let [owner, repo] = ['', '']
 
-	let chart: Chart
+	let chart: Chart | undefined
 
 	async function getStargazers(owner: string, repo: string) {
+		if (!chart || !$chart) {
+			addError('Chart not initialized')
+			return
+		}
 		for (const line of $chart.lines) {
 			if (line.name === `${owner}/${repo}`) {
 				return // already added
@@ -116,13 +120,34 @@
 	</div>
 {/each}
 
-{#if $chart?.lines.length > 0}
-	<ChartComponent {chart} />
+{#if chart && $chart && $chart.lines.length > 0}
+	<ChartComponent bind:chart />
 {/if}
 <div class="chart" bind:clientWidth={width}>
 	<div bind:this={container} class:hidden={!$chart || $chart.lines.length === 0} />
-	{#if $chart?.lines.length > 0}
+	{#if chart && $chart && $chart.lines.length > 0}
 		<Tooltip {chart} />
+	{/if}
+</div>
+
+<div class="bottom-bar">
+	{#if chart && $chart && $chart.lines.length > 0}
+		<label>
+			<input
+				type="checkbox"
+				checked={$chart.align}
+				on:input={(e) => {
+					if (!chart) {
+						return
+					} else if (e.currentTarget.checked) {
+						chart.alignLines()
+					} else {
+						chart.unalignLines()
+					}
+				}}
+			/>
+			Align
+		</label>
 	{/if}
 </div>
 
@@ -132,7 +157,6 @@
 	.error
 		border: 2px solid hsla(0, 100%, 50%, 0.5)
 		background-color: hsla(0, 100%, 50%, 0.25)
-		// color: hsl(0, 100%, 66%)
 		border-radius: 8px
 		padding: 0.75rem 1rem
 		font-weight: 500
@@ -154,8 +178,33 @@
 				opacity: 0.7
 	.chart
 		width: 100%
-		margin-bottom: 50px
 		position: relative // for tooltip
 	.hidden
 		display: none
+	.bottom-bar
+		padding-top: 10px
+		padding-bottom: 50px
+	label
+		padding: 0.5rem 0.375rem
+		font-size: 0.9375rem
+		color: #FFFFFF
+		display: inline-flex
+		align-items: center
+		user-select: none
+	input[type='checkbox']
+		appearance: none
+		margin: 0px
+		margin-right: 6px
+		padding: 0px
+		width: 1rem
+		height: 1rem
+		background-color: hsl(224, 9%, 20%)
+		border-radius: 4px
+		border: 1px solid hsl(228, 3%, 50%)
+		&:checked
+			background-image: url("data:image/svg+xml,%3csvg viewBox='0 0 16 16' fill='white' xmlns='http://www.w3.org/2000/svg'%3e%3cpath d='M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z'/%3e%3c/svg%3e")
+		&:focus-visible
+			border-color: #cbcaf7
+			box-shadow: 0 0 1px #cbcaf7
+			outline: 1px solid transparent
 </style>
