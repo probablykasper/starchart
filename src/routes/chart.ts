@@ -1,5 +1,6 @@
 import {
 	createChart as createChartInstance,
+	PriceScaleMode,
 	TickMarkType,
 	type BusinessDay,
 	type ChartOptions,
@@ -40,6 +41,7 @@ const jsonTypeVersion = 3
 type Json = {
 	lines: LineJson[]
 	align: boolean
+	logScale: boolean
 	v: number
 	expiry: number
 }
@@ -72,6 +74,7 @@ function loadJson() {
 			return {
 				lines: lineBases,
 				align: json.align,
+				logScale: json.logScale,
 			}
 		} else {
 			localStorage.removeItem('starchart-series')
@@ -82,6 +85,7 @@ function loadJson() {
 	return {
 		lines: [],
 		align: false,
+		logScale: false,
 	}
 }
 
@@ -89,6 +93,7 @@ type ChartData = {
 	instance: IChartApi
 	lines: Line[]
 	align: boolean
+	logScale: boolean
 	container: HTMLElement
 }
 export type Chart = ReturnType<typeof newChart>
@@ -100,6 +105,7 @@ export function newChart(container: HTMLElement, options: DeepPartial<ChartOptio
 		instance: createChartInstance(container, options),
 		container,
 		align: false,
+		logScale: false,
 		lines: [],
 	}
 	const { subscribe, set } = writable(chart)
@@ -244,6 +250,17 @@ export function newChart(container: HTMLElement, options: DeepPartial<ChartOptio
 			set(chart)
 		},
 
+		setLogScale(logScale: boolean) {
+			chart.instance.applyOptions({
+				rightPriceScale: {
+					mode: logScale ? PriceScaleMode.Logarithmic : PriceScaleMode.Normal,
+				},
+			})
+			chart.logScale = logScale
+			store.save()
+			set(chart)
+		},
+
 		deleteLine(line: Line) {
 			chart.instance.removeSeries(line.instance)
 			line.deleted = true
@@ -295,6 +312,8 @@ export function newChart(container: HTMLElement, options: DeepPartial<ChartOptio
 			save(chart)
 		},
 	}
+
+	store.setLogScale(json.logScale)
 
 	for (const jsonLine of json.lines) {
 		store.addLine(jsonLine)
@@ -360,6 +379,7 @@ function save(chart: ChartData) {
 		lines: jsonLines,
 		v: jsonTypeVersion,
 		align: chart.align,
+		logScale: chart.logScale,
 		expiry: Date.now() + day * 1,
 	}
 	localStorage.setItem('starchart-series', JSON.stringify(json))
