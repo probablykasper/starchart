@@ -24,6 +24,7 @@ type LineBase = {
 export interface Line extends LineBase {
 	instance: ISeriesApi<'Area'>
 	deleted: boolean
+	lastChartSeriesDate?: BusinessDay
 	hidden?: boolean
 }
 
@@ -158,6 +159,11 @@ export function newChart(container: HTMLElement, options: DeepPartial<ChartOptio
 				},
 			})
 
+			const line: Line = {
+				...lineJson,
+				instance: series,
+				deleted: false,
+			}
 			if (lineJson.data.length >= 1) {
 				const start = lineJson.data[0]
 				const end = lineJson.final ?? lineJson.data[lineJson.data.length - 1]
@@ -167,12 +173,8 @@ export function newChart(container: HTMLElement, options: DeepPartial<ChartOptio
 				if (chart.align) {
 					chartSeries = alignChartSeries(chartSeries)
 				}
+				line.lastChartSeriesDate = chartSeries[chartSeries.length - 1].time
 				series.setData(chartSeries)
-			}
-			const line: Line = {
-				...lineJson,
-				instance: series,
-				deleted: false,
 			}
 			chart.lines.push(line)
 			updateFiller(chart.lines)
@@ -195,6 +197,7 @@ export function newChart(container: HTMLElement, options: DeepPartial<ChartOptio
 				const chartSeries = toChartSeries(line.data, start, end)
 				const alignedChartSeries = alignChartSeries(chartSeries)
 				line.instance.setData(alignedChartSeries)
+				line.lastChartSeriesDate = alignedChartSeries[alignedChartSeries.length - 1].time
 			}
 			const startDate = new Date(2001, 0)
 			const day = 1000 * 3600 * 24
@@ -245,6 +248,7 @@ export function newChart(container: HTMLElement, options: DeepPartial<ChartOptio
 				const end = line.data[line.data.length - 1]
 				const chartSeries = toChartSeries(line.data, start, end)
 				line.instance.setData(chartSeries)
+				line.lastChartSeriesDate = chartSeries[chartSeries.length - 1].time
 			}
 			setDefaultFormatting()
 			set(chart)
@@ -268,13 +272,43 @@ export function newChart(container: HTMLElement, options: DeepPartial<ChartOptio
 			set(chart)
 		},
 
+		_appendAlignedChartData(line: Line, data: DataPoint[]) {
+			if (data.length === 0) {
+				return
+			}
+			const start = data[0]
+			const end = data[data.length - 1]
+			const chartSeries = toChartSeries(data, start, end)
+			const fresh = line.data.length === 0
+			if (fresh) {
+				const alignedChartSeries = alignChartSeries(chartSeries)
+				line.instance.setData(alignedChartSeries)
+				line.lastChartSeriesDate = alignedChartSeries[alignedChartSeries.length - 1].time
+			} else {
+				const startDay = line.lastChartSeriesDate
+				if (!startDay) {
+					throw new Error('no lastChartSeriesDate')
+				}
+				const startDate = new Date(startDay.year, startDay.month - 1, startDay.day)
+				const alignedChartSeries = alignChartSeries(chartSeries, startDate)
+				line.lastChartSeriesDate = alignedChartSeries[alignedChartSeries.length - 1].time
+
+				for (const dataPoint of alignedChartSeries) {
+					line.instance.update(dataPoint)
+				}
+			}
+		},
+
 		_appendChartData(line: Line, data: DataPoint[]) {
 			if (data.length === 0) {
 				return
+			} else if (chart.align) {
+				return this._appendAlignedChartData(line, data)
 			}
 			const start = line.data[line.data.length - 1] ?? data[0]
 			const end = line.final ?? data[data.length - 1]
 			const chartSeries = toChartSeries(data, start, end)
+			line.lastChartSeriesDate = chartSeries[chartSeries.length - 1].time
 			const fresh = line.data.length === 0
 
 			if (fresh) {
@@ -436,8 +470,8 @@ function toChartSeries(data: DataPoint[], start: DataPoint, final: DataPoint): C
 	})
 }
 
-function alignChartSeries(chartSeries: ChartSeries[]): ChartSeries[] {
-	const date = new Date(2001, 0)
+function alignChartSeries(chartSeries: ChartSeries[], start = new Date(2001, 0)): ChartSeries[] {
+	const date = start
 	return chartSeries.map((seriesPoint): ChartSeries => {
 		const alignedSeriesPoint: ChartSeries = {
 			time: {
