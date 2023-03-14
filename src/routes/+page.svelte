@@ -144,6 +144,7 @@
 					} else {
 						chart.unalignLines()
 					}
+					chart.save()
 				}}
 			/>
 			Align
@@ -155,6 +156,7 @@
 				on:input={(e) => {
 					if (chart) {
 						chart.setLogScale(e.currentTarget.checked)
+						chart.save()
 					}
 				}}
 			/>

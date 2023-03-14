@@ -168,7 +168,6 @@ export function newChart(container: HTMLElement, options: DeepPartial<ChartOptio
 				const start = lineJson.data[0]
 				const end = lineJson.final ?? lineJson.data[lineJson.data.length - 1]
 				let chartSeries = toChartSeries(lineJson.data, start, end)
-				console.log('addLine', chart.align)
 
 				if (chart.align) {
 					chartSeries = alignChartSeries(chartSeries)
@@ -187,7 +186,6 @@ export function newChart(container: HTMLElement, options: DeepPartial<ChartOptio
 
 		alignLines() {
 			chart.align = true
-			store.save()
 			for (const line of chart.lines) {
 				if (line.deleted || line.data.length === 0) {
 					continue
@@ -239,7 +237,6 @@ export function newChart(container: HTMLElement, options: DeepPartial<ChartOptio
 
 		unalignLines() {
 			chart.align = false
-			store.save()
 			for (const line of chart.lines) {
 				if (line.deleted || line.data.length === 0) {
 					continue
@@ -261,7 +258,6 @@ export function newChart(container: HTMLElement, options: DeepPartial<ChartOptio
 				},
 			})
 			chart.logScale = logScale
-			store.save()
 			set(chart)
 		},
 
@@ -396,6 +392,8 @@ function getFiller(data: Line[], now: Date) {
 
 const day = 1000 * 60 * 60 * 24
 function save(chart: ChartData) {
+	console.trace()
+
 	if (chart.lines.length === 0) {
 		localStorage.removeItem('starchart-series')
 		return
