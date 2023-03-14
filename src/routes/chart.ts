@@ -129,6 +129,48 @@ export function newChart(container: HTMLElement, options: DeepPartial<ChartOptio
 	}
 	setDefaultFormatting()
 
+	function setAlignedFormatting() {
+		const startDate = new Date(2001, 0)
+		const day = 1000 * 3600 * 24
+		const startDay = Math.ceil(startDate.getTime() / day)
+		chart.instance.applyOptions({
+			localization: {
+				timeFormatter: (time: BusinessDay) => {
+					const date = new Date(time.year, time.month - 1, time.day)
+					return Math.ceil(date.getTime() / day) - startDay + ' days'
+				},
+			},
+			timeScale: {
+				tickMarkFormatter: (time: BusinessDay, tickMarkType: TickMarkType) => {
+					const date = new Date(time.year, time.month - 1, time.day)
+					if (tickMarkType === TickMarkType.DayOfMonth) {
+						return Math.ceil(date.getTime() / day) - startDay + 'd'
+					}
+					const years = date.getFullYear() - startDate.getFullYear()
+					if (tickMarkType === TickMarkType.Month) {
+						return date.getMonth() - startDate.getMonth() + 12 * years + 'm'
+					} else if (tickMarkType === TickMarkType.Year) {
+						switch (years) {
+							case 0:
+								return '0d'
+							case 1:
+								return '1y'
+							default:
+								return years + 'y'
+						}
+					} else {
+						return null
+					}
+				},
+			},
+		})
+	}
+	if (chart.align) {
+		setAlignedFormatting()
+	} else {
+		setDefaultFormatting()
+	}
+
 	const fillerLine = chart.instance.addAreaSeries({
 		priceScaleId: '',
 		visible: false,
@@ -197,40 +239,7 @@ export function newChart(container: HTMLElement, options: DeepPartial<ChartOptio
 				line.instance.setData(alignedChartSeries)
 				line.lastChartSeriesDate = alignedChartSeries[alignedChartSeries.length - 1].time
 			}
-			const startDate = new Date(2001, 0)
-			const day = 1000 * 3600 * 24
-			const startDay = Math.ceil(startDate.getTime() / day)
-			chart.instance.applyOptions({
-				localization: {
-					timeFormatter: (time: BusinessDay) => {
-						const date = new Date(time.year, time.month - 1, time.day)
-						return Math.ceil(date.getTime() / day) - startDay + ' days'
-					},
-				},
-				timeScale: {
-					tickMarkFormatter: (time: BusinessDay, tickMarkType: TickMarkType) => {
-						const date = new Date(time.year, time.month - 1, time.day)
-						if (tickMarkType === TickMarkType.DayOfMonth) {
-							return Math.ceil(date.getTime() / day) - startDay + 'd'
-						}
-						const years = date.getFullYear() - startDate.getFullYear()
-						if (tickMarkType === TickMarkType.Month) {
-							return date.getMonth() - startDate.getMonth() + 12 * years + 'm'
-						} else if (tickMarkType === TickMarkType.Year) {
-							switch (years) {
-								case 0:
-									return '0d'
-								case 1:
-									return '1y'
-								default:
-									return years + 'y'
-							}
-						} else {
-							return null
-						}
-					},
-				},
-			})
+			setAlignedFormatting()
 			updateFiller(chart.lines)
 			this.resetZoom()
 			set(chart)
