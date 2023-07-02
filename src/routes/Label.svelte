@@ -9,7 +9,6 @@
 	export let onDelete: () => void
 </script>
 
-<!-- svelte-ignore a11y-no-noninteractive-tabindex -->
 <span
 	class="serie"
 	style:--color-1={hex}
@@ -27,6 +26,7 @@
 			e.preventDefault()
 		}
 	}}
+	role="button"
 >
 	<button
 		type="button"
