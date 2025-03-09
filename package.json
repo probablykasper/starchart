@@ -11,8 +11,9 @@
 	"devDependencies": {
 		"@ctrl/tinycolor": "^3.6.1",
 		"@octokit/core": "^4.2.4",
-		"@sveltejs/adapter-cloudflare": "^2.3.4",
-		"@sveltejs/kit": "^1.30.4",
+		"@sveltejs/adapter-cloudflare": "^5.0.3",
+		"@sveltejs/kit": "^2.19.0",
+		"@sveltejs/vite-plugin-svelte": "^3.1.2",
 		"@typescript-eslint/eslint-plugin": "^5.62.0",
 		"@typescript-eslint/parser": "^5.62.0",
 		"apexcharts": "^3.54.1",
@@ -28,7 +29,7 @@
 		"svelte": "^4.2.19",
 		"svelte-check": "^3.8.6",
 		"typescript": "^5.8.2",
-		"vite": "^4.5.9"
+		"vite": "^5.0.0"
 	},
 	"prettier": {
 		"useTabs": true,
