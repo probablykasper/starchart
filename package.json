@@ -13,7 +13,7 @@
 		"@octokit/core": "^4.2.4",
 		"@sveltejs/adapter-cloudflare": "^5.0.3",
 		"@sveltejs/kit": "^2.19.0",
-		"@sveltejs/vite-plugin-svelte": "^3.1.2",
+		"@sveltejs/vite-plugin-svelte": "^4.0.0",
 		"@typescript-eslint/eslint-plugin": "^5.62.0",
 		"@typescript-eslint/parser": "^5.62.0",
 		"apexcharts": "^3.54.1",
@@ -23,13 +23,13 @@
 		"isomorphic-fetch": "^3.0.0",
 		"lightweight-charts": "^4.2.3",
 		"modal-svelte": "^1.1.0",
-		"prettier": "^2.8.8",
-		"prettier-plugin-svelte": "^2.10.1",
+		"prettier": "^3.1.0",
+		"prettier-plugin-svelte": "^3.2.6",
 		"sass": "^1.63.6",
-		"svelte": "^4.2.19",
-		"svelte-check": "^3.8.6",
+		"svelte": "^5.0.0",
+		"svelte-check": "^4.0.0",
 		"typescript": "^5.8.2",
-		"vite": "^5.0.0"
+		"vite": "^5.4.4"
 	},
 	"prettier": {
 		"useTabs": true,
