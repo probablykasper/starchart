@@ -8,6 +8,7 @@
 
 	$: owner, parseOwnerField()
 	async function parseOwnerField() {
+		owner = owner.replace(/^https?:\/\//, '').replace('github.com/', '')
 		const slashIndex = owner.indexOf('/')
 		if (slashIndex >= 0) {
 			const newOwner = owner.slice(0, slashIndex)
