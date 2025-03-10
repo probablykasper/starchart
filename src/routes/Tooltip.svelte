@@ -110,8 +110,7 @@
 >
 	<table>
 		<tbody>
-			<!-- svelte-ignore svelte/require-each-key -->
-			{#each values as tooltip_value}
+			{#each values as tooltip_value (tooltip_value.line.name)}
 				{#if !tooltip_value.line.hidden}
 					<tr>
 						<td class="name" style:color={bright_colors[tooltip_value.line.color]}
