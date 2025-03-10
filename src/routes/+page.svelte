@@ -81,7 +81,13 @@
 
 	let container: HTMLDivElement
 	onMount(() => {
-		chart = new_chart(container, { width, height })
+		chart = new_chart(container, {
+			width,
+			height,
+			layout: {
+				attributionLogo: false,
+			},
+		})
 	})
 	$: $chart?.instance.applyOptions({
 		width,
