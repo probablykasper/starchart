@@ -1,5 +1,5 @@
 import {
-	createChart as createChartInstance,
+	createChart as create_chart_instance,
 	PriceScaleMode,
 	TickMarkType,
 	type BusinessDay,
@@ -11,7 +11,7 @@ import {
 	type UTCTimestamp,
 } from 'lightweight-charts'
 import { writable } from 'svelte/store'
-import { bottomColors, hexColors, topColors } from './color'
+import { bottom_colors, hex_colors, top_colors } from './color'
 
 export type DataPoint = { t: UTCTimestamp; v: number }
 type LineBase = {
@@ -38,7 +38,7 @@ type LineJson = {
 }
 
 /** Used to invalidate old localStorage */
-const jsonTypeVersion = 3
+const json_type_version = 3
 type Json = {
 	lines: LineJson[]
 	align: boolean
@@ -47,33 +47,36 @@ type Json = {
 	expiry: number
 }
 
-let nextColorIndex = 0
-export function getNextColorIndex() {
-	const value = nextColorIndex
-	nextColorIndex = (nextColorIndex + 1) % hexColors.length
+let next_color_index = 0
+export function get_next_color_index() {
+	const value = next_color_index
+	next_color_index = (next_color_index + 1) % hex_colors.length
 	return value
 }
 
-function loadJson() {
+function load_json() {
 	try {
-		const seriesLocalStorage = JSON.parse(localStorage.getItem('starchart-series') || '{}')
-		if (seriesLocalStorage?.v === jsonTypeVersion && seriesLocalStorage?.expiry > Date.now()) {
-			const json = seriesLocalStorage as Json
-			const lineBases = json.lines.map(
+		const series_local_storage = JSON.parse(localStorage.getItem('starchart-series') || '{}')
+		if (
+			series_local_storage?.v === json_type_version &&
+			series_local_storage?.expiry > Date.now()
+		) {
+			const json = series_local_storage as Json
+			const line_bases = json.lines.map(
 				(line): LineBase => ({
 					color: line.color,
-					data: line.data.map((utcTimestamp, i): DataPoint => {
+					data: line.data.map((utc_timestamp, i): DataPoint => {
 						return {
-							t: utcTimestamp,
+							t: utc_timestamp,
 							v: i + 1,
 						}
 					}),
 					final: line.final,
 					name: line.name,
-				})
+				}),
 			)
 			return {
-				lines: lineBases,
+				lines: line_bases,
 				align: json.align,
 				logScale: json.logScale,
 			}
@@ -97,13 +100,13 @@ type ChartData = {
 	logScale: boolean
 	container: HTMLElement
 }
-export type Chart = ReturnType<typeof newChart>
+export type Chart = ReturnType<typeof new_chart>
 
 const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 
-export function newChart(container: HTMLElement, options: DeepPartial<ChartOptions>) {
+export function new_chart(container: HTMLElement, options: DeepPartial<ChartOptions>) {
 	const chart: ChartData = {
-		instance: createChartInstance(container, options),
+		instance: create_chart_instance(container, options),
 		container,
 		align: false,
 		logScale: false,
@@ -111,10 +114,10 @@ export function newChart(container: HTMLElement, options: DeepPartial<ChartOptio
 	}
 	const { subscribe, set } = writable(chart)
 
-	const json = loadJson()
+	const json = load_json()
 	chart.align = json.align
 
-	function setDefaultFormatting() {
+	function set_default_formatting() {
 		chart.instance.applyOptions({
 			localization: {
 				timeFormatter: (time: BusinessDay) => {
@@ -127,29 +130,29 @@ export function newChart(container: HTMLElement, options: DeepPartial<ChartOptio
 			},
 		})
 	}
-	setDefaultFormatting()
+	set_default_formatting()
 
-	function setAlignedFormatting() {
-		const startDate = new Date(2001, 0)
+	function set_aligned_formatting() {
+		const start_date = new Date(2001, 0)
 		const day = 1000 * 3600 * 24
-		const startDay = Math.ceil(startDate.getTime() / day)
+		const start_day = Math.ceil(start_date.getTime() / day)
 		chart.instance.applyOptions({
 			localization: {
 				timeFormatter: (time: BusinessDay) => {
 					const date = new Date(time.year, time.month - 1, time.day)
-					return Math.ceil(date.getTime() / day) - startDay + ' days'
+					return Math.ceil(date.getTime() / day) - start_day + ' days'
 				},
 			},
 			timeScale: {
-				tickMarkFormatter: (time: BusinessDay, tickMarkType: TickMarkType) => {
+				tickMarkFormatter: (time: BusinessDay, tick_mark_type: TickMarkType) => {
 					const date = new Date(time.year, time.month - 1, time.day)
-					if (tickMarkType === TickMarkType.DayOfMonth) {
-						return Math.ceil(date.getTime() / day) - startDay + 'd'
+					if (tick_mark_type === TickMarkType.DayOfMonth) {
+						return Math.ceil(date.getTime() / day) - start_day + 'd'
 					}
-					const years = date.getFullYear() - startDate.getFullYear()
-					if (tickMarkType === TickMarkType.Month) {
-						return date.getMonth() - startDate.getMonth() + 12 * years + 'm'
-					} else if (tickMarkType === TickMarkType.Year) {
+					const years = date.getFullYear() - start_date.getFullYear()
+					if (tick_mark_type === TickMarkType.Month) {
+						return date.getMonth() - start_date.getMonth() + 12 * years + 'm'
+					} else if (tick_mark_type === TickMarkType.Year) {
 						switch (years) {
 							case 0:
 								return '0d'
@@ -166,33 +169,33 @@ export function newChart(container: HTMLElement, options: DeepPartial<ChartOptio
 		})
 	}
 	if (chart.align) {
-		setAlignedFormatting()
+		set_aligned_formatting()
 	} else {
-		setDefaultFormatting()
+		set_default_formatting()
 	}
 
-	const fillerLine = chart.instance.addAreaSeries({
+	const filler_line = chart.instance.addAreaSeries({
 		priceScaleId: '',
 		visible: false,
 	})
 
-	function updateFiller(data: Line[]) {
+	function update_filler(data: Line[]) {
 		if (chart.align && data.length > 0) {
-			fillerLine.setData([])
+			filler_line.setData([])
 		} else {
-			fillerLine.setData(getFiller(data, new Date()))
+			filler_line.setData(get_filler(data, new Date()))
 		}
 	}
 
 	const store = {
 		subscribe,
 
-		addLine(lineJson: LineBase) {
+		addLine(line_json: LineBase) {
 			const series = chart.instance.addAreaSeries({
 				priceLineVisible: false,
-				topColor: topColors[lineJson.color],
-				bottomColor: bottomColors[lineJson.color],
-				lineColor: hexColors[lineJson.color],
+				topColor: top_colors[line_json.color],
+				bottomColor: bottom_colors[line_json.color],
+				lineColor: hex_colors[line_json.color],
 				priceFormat: {
 					type: 'custom',
 					formatter: (price: number) => {
@@ -202,24 +205,24 @@ export function newChart(container: HTMLElement, options: DeepPartial<ChartOptio
 			})
 
 			const line: Line = {
-				...lineJson,
+				...line_json,
 				instance: series,
 				deleted: false,
 			}
-			if (lineJson.data.length >= 1) {
-				const start = lineJson.data[0]
-				const end = lineJson.final ?? lineJson.data[lineJson.data.length - 1]
-				let chartSeries = toChartSeries(lineJson.data, start, end)
+			if (line_json.data.length >= 1) {
+				const start = line_json.data[0]
+				const end = line_json.final ?? line_json.data[line_json.data.length - 1]
+				let chart_series = to_chart_series(line_json.data, start, end)
 
 				if (chart.align) {
-					chartSeries = alignChartSeries(chartSeries)
+					chart_series = align_chart_series(chart_series)
 				}
-				line.lastChartSeriesDate = chartSeries[chartSeries.length - 1].time
-				series.setData(chartSeries)
+				line.lastChartSeriesDate = chart_series[chart_series.length - 1].time
+				series.setData(chart_series)
 			}
 			chart.lines.push(line)
-			updateFiller(chart.lines)
-			if (lineJson.data.length >= 1) {
+			update_filler(chart.lines)
+			if (line_json.data.length >= 1) {
 				store.resetZoom()
 			}
 			set(chart)
@@ -234,13 +237,13 @@ export function newChart(container: HTMLElement, options: DeepPartial<ChartOptio
 				}
 				const start = line.data[0]
 				const end = line.data[line.data.length - 1]
-				const chartSeries = toChartSeries(line.data, start, end)
-				const alignedChartSeries = alignChartSeries(chartSeries)
-				line.instance.setData(alignedChartSeries)
-				line.lastChartSeriesDate = alignedChartSeries[alignedChartSeries.length - 1].time
+				const chart_series = to_chart_series(line.data, start, end)
+				const aligned_chart_series = align_chart_series(chart_series)
+				line.instance.setData(aligned_chart_series)
+				line.lastChartSeriesDate = aligned_chart_series[aligned_chart_series.length - 1].time
 			}
-			setAlignedFormatting()
-			updateFiller(chart.lines)
+			set_aligned_formatting()
+			update_filler(chart.lines)
 			this.resetZoom()
 			set(chart)
 		},
@@ -253,22 +256,22 @@ export function newChart(container: HTMLElement, options: DeepPartial<ChartOptio
 				}
 				const start = line.data[0]
 				const end = line.data[line.data.length - 1]
-				const chartSeries = toChartSeries(line.data, start, end)
-				line.instance.setData(chartSeries)
-				line.lastChartSeriesDate = chartSeries[chartSeries.length - 1].time
+				const chart_series = to_chart_series(line.data, start, end)
+				line.instance.setData(chart_series)
+				line.lastChartSeriesDate = chart_series[chart_series.length - 1].time
 			}
-			setDefaultFormatting()
+			set_default_formatting()
 			this.resetZoom()
 			set(chart)
 		},
 
-		setLogScale(logScale: boolean) {
+		setLogScale(log_scale: boolean) {
 			chart.instance.applyOptions({
 				rightPriceScale: {
-					mode: logScale ? PriceScaleMode.Logarithmic : PriceScaleMode.Normal,
+					mode: log_scale ? PriceScaleMode.Logarithmic : PriceScaleMode.Normal,
 				},
 			})
-			chart.logScale = logScale
+			chart.logScale = log_scale
 			set(chart)
 		},
 
@@ -285,23 +288,23 @@ export function newChart(container: HTMLElement, options: DeepPartial<ChartOptio
 			}
 			const start = data[0]
 			const end = data[data.length - 1]
-			const chartSeries = toChartSeries(data, start, end)
+			const chart_series = to_chart_series(data, start, end)
 			const fresh = line.data.length === 0
 			if (fresh) {
-				const alignedChartSeries = alignChartSeries(chartSeries)
-				line.instance.setData(alignedChartSeries)
-				line.lastChartSeriesDate = alignedChartSeries[alignedChartSeries.length - 1].time
+				const aigned_chart_series = align_chart_series(chart_series)
+				line.instance.setData(aigned_chart_series)
+				line.lastChartSeriesDate = aigned_chart_series[aigned_chart_series.length - 1].time
 			} else {
-				const startDay = line.lastChartSeriesDate
-				if (!startDay) {
+				const start_day = line.lastChartSeriesDate
+				if (!start_day) {
 					throw new Error('no lastChartSeriesDate')
 				}
-				const startDate = new Date(startDay.year, startDay.month - 1, startDay.day)
-				const alignedChartSeries = alignChartSeries(chartSeries, startDate)
-				line.lastChartSeriesDate = alignedChartSeries[alignedChartSeries.length - 1].time
+				const start_date = new Date(start_day.year, start_day.month - 1, start_day.day)
+				const aligned_chart_series = align_chart_series(chart_series, start_date)
+				line.lastChartSeriesDate = aligned_chart_series[aligned_chart_series.length - 1].time
 
-				for (const dataPoint of alignedChartSeries) {
-					line.instance.update(dataPoint)
+				for (const data_point of aligned_chart_series) {
+					line.instance.update(data_point)
 				}
 			}
 		},
@@ -314,15 +317,15 @@ export function newChart(container: HTMLElement, options: DeepPartial<ChartOptio
 			}
 			const start = line.data[line.data.length - 1] ?? data[0]
 			const end = line.final ?? data[data.length - 1]
-			const chartSeries = toChartSeries(data, start, end)
-			line.lastChartSeriesDate = chartSeries[chartSeries.length - 1].time
+			const chart_series = to_chart_series(data, start, end)
+			line.lastChartSeriesDate = chart_series[chart_series.length - 1].time
 			const fresh = line.data.length === 0
 
 			if (fresh) {
-				line.instance.setData(chartSeries)
+				line.instance.setData(chart_series)
 			} else {
-				for (const dataPoint of chartSeries) {
-					line.instance.update(dataPoint)
+				for (const data_point of chart_series) {
+					line.instance.update(data_point)
 				}
 			}
 		},
@@ -332,7 +335,7 @@ export function newChart(container: HTMLElement, options: DeepPartial<ChartOptio
 			store._appendChartData(line, data)
 			line.data.push(...data)
 			if (fresh) {
-				updateFiller(chart.lines)
+				update_filler(chart.lines)
 				store.resetZoom()
 			}
 			set(chart)
@@ -341,7 +344,7 @@ export function newChart(container: HTMLElement, options: DeepPartial<ChartOptio
 		addFinal(line: Line, data: DataPoint) {
 			store._appendChartData(line, [data])
 			line.final = data
-			updateFiller(chart.lines)
+			update_filler(chart.lines)
 			set(chart)
 		},
 
@@ -356,28 +359,28 @@ export function newChart(container: HTMLElement, options: DeepPartial<ChartOptio
 
 	store.setLogScale(json.logScale)
 
-	for (const jsonLine of json.lines) {
-		store.addLine(jsonLine)
+	for (const json_line of json.lines) {
+		store.addLine(json_line)
 	}
 	if (json.lines[json.lines.length - 1]) {
-		const lastColor = json.lines[json.lines.length - 1].color
-		const lastColorIndex = hexColors.findIndex((color) => color === hexColors[lastColor])
-		nextColorIndex = (lastColorIndex + 1) % hexColors.length
+		const last_color = json.lines[json.lines.length - 1].color
+		const last_color_index = hex_colors.findIndex((color) => color === hex_colors[last_color])
+		next_color_index = (last_color_index + 1) % hex_colors.length
 	}
 
 	return store
 }
 
 /** Used to keep the full chart size even when some lines are hidden */
-function getFiller(data: Line[], now: Date) {
-	let lowestDate = (Date.now() / 1000) as UTCTimestamp
+function get_filler(data: Line[], now: Date) {
+	let lowest_date = (Date.now() / 1000) as UTCTimestamp
 	for (const series of data) {
-		const dataPoint = series.data[0]
-		if (dataPoint && dataPoint.t < lowestDate) {
-			lowestDate = dataPoint.t
+		const data_point = series.data[0]
+		if (data_point && data_point.t < lowest_date) {
+			lowest_date = data_point.t
 		}
 	}
-	const dt = new Date(lowestDate * 1000)
+	const dt = new Date(lowest_date * 1000)
 	const date = new Date(dt.getFullYear(), dt.getMonth(), dt.getDate())
 
 	const dates = [date]
@@ -386,8 +389,8 @@ function getFiller(data: Line[], now: Date) {
 			new Date(
 				dates[dates.length - 1].getFullYear(),
 				dates[dates.length - 1].getMonth(),
-				dates[dates.length - 1].getDate() + 1
-			)
+				dates[dates.length - 1].getDate() + 1,
+			),
 		)
 	}
 	return dates.map((date) => {
@@ -410,17 +413,17 @@ function save(chart: ChartData) {
 		return
 	}
 
-	const jsonLines = chart.lines.map(
+	const json_lines = chart.lines.map(
 		(line): LineJson => ({
 			name: line.name,
-			data: line.data.map((dataPoint) => dataPoint.t),
+			data: line.data.map((data_point) => data_point.t),
 			color: line.color,
 			final: line.final,
-		})
+		}),
 	)
 	const json: Json = {
-		lines: jsonLines,
-		v: jsonTypeVersion,
+		lines: json_lines,
+		v: json_type_version,
 		align: chart.align,
 		logScale: chart.logScale,
 		expiry: Date.now() + day * 1,
@@ -436,61 +439,61 @@ type ChartSeries = {
 	}
 	value: number
 }
-function toChartSeries(data: DataPoint[], start: DataPoint, final: DataPoint): ChartSeries[] {
-	const dataPoints: { date: Date; value: number }[] = []
+function to_chart_series(data: DataPoint[], start: DataPoint, final: DataPoint): ChartSeries[] {
+	const data_points: { date: Date; value: number }[] = []
 
-	for (const dataPoint of [start, ...data, final]) {
-		const dt = new Date(dataPoint.t * 1000)
+	for (const data_point of [start, ...data, final]) {
+		const dt = new Date(data_point.t * 1000)
 		const date = new Date(dt.getFullYear(), dt.getMonth(), dt.getDate())
 
-		let lastDataPoint = (dataPoints as Partial<typeof dataPoints>)[dataPoints.length - 1]
-		if (lastDataPoint) {
-			while (lastDataPoint.date < date) {
-				dataPoints.push({
+		let last_data_piont = (data_points as Partial<typeof data_points>)[data_points.length - 1]
+		if (last_data_piont) {
+			while (last_data_piont.date < date) {
+				data_points.push({
 					date: new Date(
-						lastDataPoint.date.getFullYear(),
-						lastDataPoint.date.getMonth(),
-						lastDataPoint.date.getDate() + 1
+						last_data_piont.date.getFullYear(),
+						last_data_piont.date.getMonth(),
+						last_data_piont.date.getDate() + 1,
 					),
-					value: lastDataPoint.value,
+					value: last_data_piont.value,
 				})
-				lastDataPoint = dataPoints[dataPoints.length - 1]
+				last_data_piont = data_points[data_points.length - 1]
 			}
 		}
-		if (lastDataPoint && lastDataPoint.date.getTime() === date.getTime()) {
-			dataPoints[dataPoints.length - 1].value = dataPoint.v
+		if (last_data_piont && last_data_piont.date.getTime() === date.getTime()) {
+			data_points[data_points.length - 1].value = data_point.v
 		} else {
-			dataPoints.push({
+			data_points.push({
 				date: date,
-				value: dataPoint.v,
+				value: data_point.v,
 			})
 		}
 	}
 
-	return dataPoints.map((dataPoint) => {
+	return data_points.map((data_point) => {
 		return {
 			time: {
-				year: dataPoint.date.getFullYear(),
-				month: dataPoint.date.getMonth() + 1,
-				day: dataPoint.date.getDate(),
+				year: data_point.date.getFullYear(),
+				month: data_point.date.getMonth() + 1,
+				day: data_point.date.getDate(),
 			},
-			value: dataPoint.value,
+			value: data_point.value,
 		} satisfies SingleValueData
 	})
 }
 
-function alignChartSeries(chartSeries: ChartSeries[], start = new Date(2001, 0)): ChartSeries[] {
+function align_chart_series(chart_series: ChartSeries[], start = new Date(2001, 0)): ChartSeries[] {
 	const date = start
-	return chartSeries.map((seriesPoint): ChartSeries => {
-		const alignedSeriesPoint: ChartSeries = {
+	return chart_series.map((series_point): ChartSeries => {
+		const aligned_series_point: ChartSeries = {
 			time: {
 				day: date.getDate(),
 				month: date.getMonth() + 1,
 				year: date.getFullYear(),
 			},
-			value: seriesPoint.value,
+			value: series_point.value,
 		}
 		date.setDate(date.getDate() + 1)
-		return alignedSeriesPoint
+		return aligned_series_point
 	})
 }

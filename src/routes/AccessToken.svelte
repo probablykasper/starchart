@@ -3,42 +3,44 @@
 	import { token } from './github'
 	import Modal from 'modal-svelte'
 
-	let tokenInput = $token
-	let editToken = false
+	let token_intup = $token
+	let edit_token = false
 
 	function save() {
 		token.set($token)
-		editToken = false
-		$token = tokenInput
+		edit_token = false
+		$token = token_intup
 	}
 </script>
 
 {#if browser}
 	<button
+		type="button"
 		class="bordered button rounded"
 		class:yellow={!$token}
-		on:click={() => (editToken = true)}
+		on:click={() => (edit_token = true)}
 	>
 		{$token ? 'Auth token' : 'Set auth token'}
 	</button>
 {/if}
-{#if editToken}
-	<Modal title="Access token" onCancel={() => (editToken = false)} form={save} let:focus>
+{#if edit_token}
+	<Modal title="Access token" onCancel={() => (edit_token = false)} form={save}>
 		<p>
 			You'll want a GitHub access token to avoid rate limiting.
 			<a href="https://github.com/settings/tokens/new?description=Starchart"
 				>Generate your access token</a
 			>
 		</p>
+		<!-- svelte-ignore a11y_autofocus -->
 		<input
 			type="text"
 			class="bordered rounded"
-			bind:value={tokenInput}
+			bind:value={token_intup}
 			placeholder="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"
-			use:focus
+			autofocus
 		/>
 		<div slot="buttons">
-			<button class="save bordered button rounded highlight">Save</button>
+			<button type="submit" class="save bordered button rounded highlight">Save</button>
 		</div>
 	</Modal>
 {/if}

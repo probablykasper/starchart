@@ -2,11 +2,11 @@
 	import { cubicOut } from 'svelte/easing'
 	import { fade, scale } from 'svelte/transition'
 	import type { Line } from './chart'
-	import { hexColors } from './color'
+	import { hex_colors } from './color'
 
 	export let line: Line
-	$: hex = hexColors[line.color]
-	export let onDelete: () => void
+	$: hex = hex_colors[line.color]
+	export let on_delete: () => void
 </script>
 
 <span
@@ -22,7 +22,7 @@
 			line.instance.applyOptions({ visible: !line.hidden })
 			e.preventDefault()
 		} else if (e.key === 'Backspace' || e.key === 'Delete') {
-			onDelete()
+			on_delete()
 			e.preventDefault()
 		}
 	}}
@@ -39,7 +39,7 @@
 	>
 		{line.name}
 	</button>
-	<button type="button" class="x" class:loading={!line.final} on:click={onDelete} tabindex="-1">
+	<button type="button" class="x" class:loading={!line.final} on:click={on_delete} tabindex="-1">
 		<svg
 			fill="currentColor"
 			width="18"
@@ -56,7 +56,7 @@
 		>
 		{#if !line.final}
 			<div class="spinner" transition:fade={{ duration: 150 }}>
-				<div class="circle" />
+				<div class="circle"></div>
 			</div>
 		{/if}
 	</button>

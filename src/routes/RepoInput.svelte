@@ -1,31 +1,31 @@
 <script lang="ts">
-	import { checkShortcut } from './shortcuts'
+	import { check_shortcut } from './shortcuts'
 
 	export let owner: string
 	export let repo: string
-	export let onSubmit: () => void
-	let repoElement: HTMLInputElement
+	export let on_submit: () => void
+	let repo_element: HTMLInputElement
 
-	$: owner, parseOwnerField()
-	async function parseOwnerField() {
+	$: owner, parse_owner_field()
+	async function parse_owner_field() {
 		owner = owner.replace(/^https?:\/\//, '').replace('github.com/', '')
-		const slashIndex = owner.indexOf('/')
-		if (slashIndex >= 0) {
-			const newOwner = owner.slice(0, slashIndex)
-			const newRepo = owner.slice(slashIndex + 1)
-			owner = newOwner
-			if (newRepo !== '') {
-				repo = newRepo
-				repoElement.focus()
+		const slash_index = owner.indexOf('/')
+		if (slash_index >= 0) {
+			const new_owner = owner.slice(0, slash_index)
+			const new_repo = owner.slice(slash_index + 1)
+			owner = new_owner
+			if (new_repo !== '') {
+				repo = new_repo
+				repo_element.focus()
 			} else {
-				repoElement.select()
+				repo_element.select()
 			}
 		}
 	}
 
-	function inputKeydown(e: KeyboardEvent) {
-		if (checkShortcut(e, 'Enter')) {
-			onSubmit()
+	function input_keydown(e: KeyboardEvent) {
+		if (check_shortcut(e, 'Enter')) {
+			on_submit()
 		}
 	}
 </script>
@@ -37,19 +37,19 @@
 			type="text"
 			bind:value={owner}
 			placeholder="probablykasper"
-			on:keydown={inputKeydown}
+			on:keydown={input_keydown}
 		/>
 		<div><span class="bordered slash">/</span></div>
 		<input
 			class="bordered repo"
 			type="text"
-			bind:this={repoElement}
+			bind:this={repo_element}
 			bind:value={repo}
 			placeholder="cpc"
-			on:keydown={inputKeydown}
+			on:keydown={input_keydown}
 		/>
 	</div>
-	<button class="bordered button" on:click={() => onSubmit()}>Load</button>
+	<button type="button" class="bordered button" on:click={() => on_submit()}>Load</button>
 </div>
 
 <style lang="sass">

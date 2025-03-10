@@ -11,22 +11,22 @@ export const colors = [
 	'hsl(306, 100%, 52%)',
 	'hsl(0, 0%, 100%)',
 ]
-export const hexColors = colors.map((hexColor) => {
-	const color = new TinyColor(hexColor)
+export const hex_colors = colors.map((hex_color) => {
+	const color = new TinyColor(hex_color)
 	return color.brighten(10).toHexString()
 })
-export const topColors = colors.map((hexColor) => {
-	const color = new TinyColor(hexColor)
+export const top_colors = colors.map((hex_color) => {
+	const color = new TinyColor(hex_color)
 	color.setAlpha(0.5)
 	return color.saturate(100).toHslString()
 })
-export const bottomColors = colors.map((hexColor) => {
-	const color = new TinyColor(hexColor)
+export const bottom_colors = colors.map((hex_color) => {
+	const color = new TinyColor(hex_color)
 	color.setAlpha(0)
 	return color.darken(0).toHslString()
 })
 
-export const brightColors = colors.map((hexColor) => {
-	const color = new TinyColor(hexColor)
+export const bright_colors = colors.map((hex_color) => {
+	const color = new TinyColor(hex_color)
 	return color.brighten(10).toHslString()
 })

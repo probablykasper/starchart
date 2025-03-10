@@ -2,7 +2,7 @@
 	import type { BusinessDay, MouseEventParams, UTCTimestamp } from 'lightweight-charts'
 	import { onDestroy } from 'svelte'
 	import type { Chart, DataPoint, Line } from './chart'
-	import { brightColors } from './color'
+	import { bright_colors } from './color'
 
 	export let chart: Chart
 
@@ -13,36 +13,36 @@
 	let left: number
 	let top: number
 
-	$: starScale = $chart.instance.priceScale('right')
-	$: timeScale = $chart.instance.timeScale()
+	$: star_scale = $chart.instance.priceScale('right')
+	$: time_scale = $chart.instance.timeScale()
 
-	function onTouchMove() {
+	function on_touch_move() {
 		left = 10
 		top = 10
 	}
-	function onMouseMove(e: { clientX: number; clientY: number }) {
+	function on_mouse_move(e: { clientX: number; clientY: number }) {
 		const bounds = $chart.container.getBoundingClientRect()
 		const x = e.clientX - bounds.left
 		const y = e.clientY - bounds.top
 		left = x + margin
-		if (left > $chart.container.clientWidth - width - starScale.width()) {
+		if (left > $chart.container.clientWidth - width - star_scale.width()) {
 			left = x - width - margin
 		}
 
 		top = y + margin
-		if (top > $chart.container.clientHeight - height - timeScale.height()) {
+		if (top > $chart.container.clientHeight - height - time_scale.height()) {
 			top = y - height - margin
 		}
 	}
-	$chart.container.addEventListener('mousemove', onMouseMove)
-	$chart.container.addEventListener('touchmove', onTouchMove)
+	$chart.container.addEventListener('mousemove', on_mouse_move)
+	$chart.container.addEventListener('touchmove', on_touch_move)
 	onDestroy(() => {
-		$chart.container.removeEventListener('mousemove', onMouseMove)
-		$chart.container.removeEventListener('touchmove', onTouchMove)
+		$chart.container.removeEventListener('mousemove', on_mouse_move)
+		$chart.container.removeEventListener('touchmove', on_touch_move)
 	})
 
 	/** Binary search */
-	function findLatestDataPoint(arr: DataPoint[], max: UTCTimestamp) {
+	function find_latest_data_point(arr: DataPoint[], max: UTCTimestamp) {
 		let start = 0
 		let end = arr.length - 1
 		let result: DataPoint | null = null
@@ -60,7 +60,7 @@
 		return result
 	}
 
-	function updateTooltipOnMouseEvent(param: MouseEventParams) {
+	function update_tooltip_on_mouse_event(param: MouseEventParams) {
 		values = []
 		if (
 			param.point === undefined ||
@@ -80,23 +80,23 @@
 		const time = param.time as BusinessDay
 
 		for (const line of $chart.lines) {
-			const maxDate = new Date(time.year, time.month - 1, time.day, 23, 59, 59, 999)
-			const maxTimestamp = (maxDate.getTime() / 1000) as UTCTimestamp
-			const dataPoint = findLatestDataPoint(line.data, maxTimestamp)
+			const max_date = new Date(time.year, time.month - 1, time.day, 23, 59, 59, 999)
+			const max_timestamp = (max_date.getTime() / 1000) as UTCTimestamp
+			const data_point = find_latest_data_point(line.data, max_timestamp)
 
-			if (dataPoint) {
+			if (data_point) {
 				values.push({
 					line: line,
-					value: dataPoint.v,
+					value: data_point.v,
 				})
 			}
 		}
 		values.sort((a, b) => b.value - a.value)
 		values = values
 	}
-	$chart.instance.subscribeCrosshairMove(updateTooltipOnMouseEvent)
+	$chart.instance.subscribeCrosshairMove(update_tooltip_on_mouse_event)
 	onDestroy(() => {
-		$chart.instance.unsubscribeCrosshairMove(updateTooltipOnMouseEvent)
+		$chart.instance.unsubscribeCrosshairMove(update_tooltip_on_mouse_event)
 	})
 </script>
 
@@ -109,18 +109,21 @@
 	bind:clientHeight={height}
 >
 	<table>
-		{#each values as tooltipValue}
-			{#if !tooltipValue.line.hidden}
-				<tr>
-					<td class="name" style:color={brightColors[tooltipValue.line.color]}
-						>{tooltipValue.line.name}</td
-					>
-					<td class="value">
-						{tooltipValue.value}
-					</td>
-				</tr>
-			{/if}
-		{/each}
+		<tbody>
+			<!-- svelte-ignore svelte/require-each-key -->
+			{#each values as tooltip_value}
+				{#if !tooltip_value.line.hidden}
+					<tr>
+						<td class="name" style:color={bright_colors[tooltip_value.line.color]}
+							>{tooltip_value.line.name}</td
+						>
+						<td class="value">
+							{tooltip_value.value}
+						</td>
+					</tr>
+				{/if}
+			{/each}
+		</tbody>
 	</table>
 </div>
 

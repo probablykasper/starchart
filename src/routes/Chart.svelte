@@ -53,7 +53,7 @@
 	{#each $chart.lines as line (line.name)}
 		<Label
 			{line}
-			onDelete={() => {
+			on_delete={() => {
 				chart.deleteLine(line)
 				chart.save()
 			}}

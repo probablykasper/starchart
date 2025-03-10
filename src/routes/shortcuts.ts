@@ -3,18 +3,18 @@ type ShortcutOptions = {
 	alt?: boolean
 	cmdOrCtrl?: boolean
 }
-let isMac: boolean | undefined
+let is_mac: boolean | undefined
 
-export function checkModifiers(e: KeyboardEvent | MouseEvent, options: ShortcutOptions = {}) {
-	if (isMac === undefined) {
-		isMac = navigator.userAgent.indexOf('Mac') != -1
+export function check_modifiers(e: KeyboardEvent | MouseEvent, options: ShortcutOptions = {}) {
+	if (is_mac === undefined) {
+		is_mac = navigator.userAgent.indexOf('Mac') != -1
 	}
 
 	const target = {
 		shift: options.shift || false,
 		alt: options.alt || false,
-		ctrl: (!isMac && options.cmdOrCtrl) || false,
-		meta: (isMac && options.cmdOrCtrl) || false,
+		ctrl: (!is_mac && options.cmdOrCtrl) || false,
+		meta: (is_mac && options.cmdOrCtrl) || false,
 	}
 
 	const pressed = {
@@ -32,10 +32,10 @@ export function checkModifiers(e: KeyboardEvent | MouseEvent, options: ShortcutO
 	)
 }
 
-export function checkShortcut(e: KeyboardEvent, key: string, options: ShortcutOptions = {}) {
+export function check_shortcut(e: KeyboardEvent, key: string, options: ShortcutOptions = {}) {
 	if (e.key.toUpperCase() !== key.toUpperCase()) return false
-	return checkModifiers(e, options)
+	return check_modifiers(e, options)
 }
-export function checkMouseShortcut(e: MouseEvent, options: ShortcutOptions = {}) {
-	return checkModifiers(e, options)
+export function check_mouse_shortcut(e: MouseEvent, options: ShortcutOptions = {}) {
+	return check_modifiers(e, options)
 }

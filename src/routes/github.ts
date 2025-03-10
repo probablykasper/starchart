@@ -4,8 +4,8 @@ import { PUBLIC_PAT } from '$env/static/public'
 import { get, writable } from 'svelte/store'
 import { browser } from '$app/environment'
 
-const loadedToken = browser ? localStorage.getItem('starchart-token') : undefined
-export const token = writable(loadedToken || '')
+const loaded_token = browser ? localStorage.getItem('starchart-token') : undefined
+export const token = writable(loaded_token || '')
 if (browser) {
 	token.subscribe((value) => {
 		if (value === '') {
@@ -21,13 +21,13 @@ const octokit = new Octokit({
 	throttle: { enabled: false },
 })
 
-export async function fetchStargazersPage(
+export async function fetch_stargazers_page(
 	owner: string,
 	repo: string,
 	direction: 'forward' | 'back',
-	cursor?: string
+	cursor?: string,
 ) {
-	const responsePromise = octokit.graphql<{
+	const response_promise = octokit.graphql<{
 		repository: {
 			stargazers: {
 				totalCount: number
@@ -64,10 +64,10 @@ export async function fetchStargazersPage(
 			before: direction === 'back' ? cursor : undefined,
 			first: direction === 'forward' ? 100 : undefined,
 			last: direction === 'back' ? 100 : undefined,
-		}
+		},
 	)
 
-	const response = await responsePromise.catch((error) => {
+	const response = await response_promise.catch((error) => {
 		if (error instanceof GraphqlResponseError && error.errors) {
 			return {
 				error: error.errors.map((error) => error.message).join('/n'),

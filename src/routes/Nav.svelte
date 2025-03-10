@@ -4,7 +4,7 @@
 
 	export let owner: string
 	export let repo: string
-	export let onSubmit: () => void
+	export let on_submit: () => void
 </script>
 
 <nav>
@@ -12,11 +12,11 @@
 		<h1>Starchart</h1>
 	</span>
 	<div class="repo-input first">
-		<RepoInput bind:owner bind:repo {onSubmit} />
+		<RepoInput bind:owner bind:repo {on_submit} />
 	</div>
 	<div class="menu">
 		<AccessToken />
-		<a href="https://github.com/probablykasper/starchart">
+		<a href="https://github.com/probablykasper/starchart" aria-label="GitHub repository">
 			<svg
 				height="24"
 				viewBox="-2 -2 28 28"
@@ -36,7 +36,7 @@
 		</a>
 	</div>
 	<div class="repo-input second">
-		<RepoInput bind:owner bind:repo {onSubmit} />
+		<RepoInput bind:owner bind:repo {on_submit} />
 	</div>
 </nav>
 

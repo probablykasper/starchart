@@ -1,11 +1,11 @@
 <script lang="ts">
 	import { fly, slide } from 'svelte/transition'
-	import { fetchStargazersPage } from './github'
+	import { fetch_stargazers_page } from './github'
 	import { onMount } from 'svelte'
 	import '../app.sass'
 	import Nav from './Nav.svelte'
 	import ChartComponent from './Chart.svelte'
-	import { getNextColorIndex, newChart, type Chart } from './chart'
+	import { get_next_color_index, new_chart, type Chart } from './chart'
 	import type { UTCTimestamp } from 'lightweight-charts'
 	import Tooltip from './Tooltip.svelte'
 
@@ -13,9 +13,9 @@
 
 	let chart: Chart | undefined
 
-	async function getStargazers(owner: string, repo: string) {
+	async function get_stargazers(owner: string, repo: string) {
 		if (!chart || !$chart) {
-			addError('Chart not initialized')
+			add_error('Chart not initialized')
 			return
 		}
 		for (const line of $chart.lines) {
@@ -24,49 +24,49 @@
 			}
 		}
 		let count = 0
-		let endCursor: string | undefined
+		let end_cursor: string | undefined
 		const line = chart.addLine({
 			name: `${owner}/${repo}`,
-			color: getNextColorIndex(),
+			color: get_next_color_index(),
 			data: [],
 		})
-		let totalCount = 0
+		let total_count = 0
 		do {
 			if (line.deleted) {
 				return // abort
 			}
-			const { error, stargazers } = await fetchStargazersPage(owner, repo, 'forward', endCursor)
+			const { error, stargazers } = await fetch_stargazers_page(owner, repo, 'forward', end_cursor)
 			if (!stargazers) {
-				addError(error)
+				add_error(error)
 				chart.deleteLine(line)
 				return
 			}
 
 			if (stargazers.pageInfo.hasNextPage) {
-				endCursor = stargazers.pageInfo.endCursor
+				end_cursor = stargazers.pageInfo.endCursor
 			} else {
-				endCursor = undefined
+				end_cursor = undefined
 			}
-			totalCount = stargazers.totalCount
+			total_count = stargazers.totalCount
 
-			const newData = stargazers.starTimes.map((starTime) => {
+			const new_data = stargazers.starTimes.map((star_time) => {
 				count++
 				return {
-					t: Math.floor(new Date(starTime).getTime() / 1000) as UTCTimestamp,
+					t: Math.floor(new Date(star_time).getTime() / 1000) as UTCTimestamp,
 					v: count,
 				}
 			})
-			chart.appendStargazers(line, newData)
-		} while (endCursor)
+			chart.appendStargazers(line, new_data)
+		} while (end_cursor)
 		chart.addFinal(line, {
 			t: Math.floor(new Date().getTime() / 1000) as UTCTimestamp,
-			v: totalCount,
+			v: total_count,
 		})
 		chart.save()
 	}
 
 	let errors: { id: number; msg: string }[] = []
-	function addError(msg: string) {
+	function add_error(msg: string) {
 		const id = Math.random()
 		errors.push({ id, msg })
 		errors = errors
@@ -81,7 +81,7 @@
 
 	let container: HTMLDivElement
 	onMount(() => {
-		chart = newChart(container, { width, height })
+		chart = new_chart(container, { width, height })
 	})
 	$: $chart?.instance.applyOptions({
 		width,
@@ -89,13 +89,15 @@
 	})
 </script>
 
-<Nav bind:owner bind:repo onSubmit={() => getStargazers(owner, repo)} />
+<Nav bind:owner bind:repo on_submit={() => get_stargazers(owner, repo)} />
 
 {#each errors as error, i (error.id)}
 	<div class="error-container" transition:slide={{ duration: 200 }}>
 		<div class="error" transition:fly={{ duration: 200, opacity: 0, y: -40 }}>
 			{error.msg}
 			<button
+				type="button"
+				aria-label="Dismiss error"
 				on:click={() => {
 					errors.splice(i, 1)
 					errors = errors
@@ -124,7 +126,7 @@
 	<ChartComponent bind:chart />
 {/if}
 <div class="chart" bind:clientWidth={width}>
-	<div bind:this={container} class:hidden={!$chart || $chart.lines.length === 0} />
+	<div bind:this={container} class:hidden={!$chart || $chart.lines.length === 0}></div>
 	{#if chart && $chart && $chart.lines.length > 0}
 		<Tooltip {chart} />
 	{/if}
