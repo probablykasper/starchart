@@ -53,6 +53,8 @@
 	button
 		align-self: center
 		border-radius: 8px
+		@media screen and (max-width: 360px)
+			font-size: 12px
 	button.save
 		margin-top: 0.5rem
 		margin-left: auto
