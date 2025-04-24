@@ -4,6 +4,7 @@
 	import { ColorType } from 'lightweight-charts'
 
 	export let chart: Chart
+	export let screenshot_mode = false
 
 	$chart.instance.applyOptions({
 		layout: {
@@ -53,6 +54,7 @@
 	{#each $chart.lines as line (line.name)}
 		<Label
 			{line}
+			{screenshot_mode}
 			on_delete={() => {
 				chart.deleteLine(line)
 				chart.save()
@@ -70,6 +72,5 @@
 		flex-wrap: wrap
 		justify-content: center
 		gap: 8px
-		padding-top: 8px
 		padding-bottom: 14px
 </style>

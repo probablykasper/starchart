@@ -6,11 +6,13 @@
 
 	export let line: Line
 	$: hex = hex_colors[line.color]
+	export let screenshot_mode = false
 	export let on_delete: () => void
 </script>
 
 <span
 	class="serie"
+	class:screenshot-mode={screenshot_mode}
 	style:--color-1={hex}
 	style:--color-2={hex + '77'}
 	in:scale={{ duration: 200, easing: cubicOut, start: 0.75, opacity: 0 }}
@@ -74,6 +76,7 @@
 		outline: 1px solid transparent
 		background-color: var(--color-2)
 		border-color: var(--color-1)
+		height: 24px
 		&:focus-visible
 			border-color: hsla(0, 0%, 100%, 1)
 		svg
@@ -94,12 +97,21 @@
 		padding-left: 0.1rem
 		&:hover
 			opacity: 0.7
+	.screenshot-mode button.x
+		display: none
+	:not(.screenshot-mode) .name
+		padding-right: 0.2rem
+	.screenshot-mode .name
+		margin-top: -2px
 	.name
 		font-size: 0.875rem
 		font-weight: 500
 		font-family: inherit
 		transition: all 50ms ease-out
-		padding-right: 0.2rem
+		padding-top: 0.225rem
+		padding-bottom: 0.225rem
+		display: flex
+		align-items: center
 		&:hover
 			text-decoration: line-through
 	.spinner

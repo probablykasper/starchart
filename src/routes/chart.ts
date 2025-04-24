@@ -406,8 +406,6 @@ function get_filler(data: Line[], now: Date) {
 
 const day = 1000 * 60 * 60 * 24
 function save(chart: ChartData) {
-	console.trace()
-
 	if (chart.lines.length === 0) {
 		localStorage.removeItem('starchart-series')
 		return
