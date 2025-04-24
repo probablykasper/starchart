@@ -32,12 +32,14 @@
 
 <div class="container">
 	<div class="inputs">
+		<!-- svelte-ignore a11y_autofocus -->
 		<input
 			class="bordered owner"
 			type="text"
 			bind:value={owner}
 			placeholder="probablykasper"
 			on:keydown={input_keydown}
+			autofocus
 		/>
 		<div><span class="bordered slash">/</span></div>
 		<input
