@@ -132,6 +132,7 @@
 	<ChartComponent bind:chart />
 {/if}
 <div class="chart" bind:clientWidth={width}>
+	<div class="watermark">starchart.kasper.space</div>
 	<div bind:this={container} class:hidden={!$chart || $chart.lines.length === 0}></div>
 	{#if chart && $chart && $chart.lines.length > 0}
 		<Tooltip {chart} />
@@ -201,6 +202,12 @@
 	.chart
 		width: 100%
 		position: relative // for tooltip
+	.watermark
+		position: absolute
+		color: hsla(0, 0%, 100%, 0.1)
+		top: 1.5rem
+		left: 1.5rem
+		z-index: 10
 	.hidden
 		display: none
 	.bottom-bar
