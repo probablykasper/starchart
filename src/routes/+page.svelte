@@ -61,7 +61,7 @@
 		} while (end_cursor)
 		chart.addFinal(line, {
 			t: Math.floor(new Date().getTime() / 1000) as UTCTimestamp,
-			v: total_count,
+			v: Math.max(total_count, count),
 		})
 		chart.save()
 	}
