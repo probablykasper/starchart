@@ -7,7 +7,7 @@ let is_mac: boolean | undefined
 
 export function check_modifiers(e: KeyboardEvent | MouseEvent, options: ShortcutOptions = {}) {
 	if (is_mac === undefined) {
-		is_mac = navigator.userAgent.indexOf('Mac') != -1
+		is_mac = navigator.userAgent.indexOf('Mac') !== -1
 	}
 
 	const target = {

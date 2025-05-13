@@ -1,8 +1,8 @@
-import prettier from 'eslint-config-prettier'
 import js from '@eslint/js'
-import svelte from 'eslint-plugin-svelte'
-import globals from 'globals'
 import ts from 'typescript-eslint'
+import svelte from 'eslint-plugin-svelte'
+import prettier from 'eslint-config-prettier'
+import globals from 'globals'
 
 /** @type {import('eslint').Linter.Config[]} */
 export default [
@@ -24,9 +24,6 @@ export default [
 		languageOptions: {
 			parserOptions: {
 				parser: ts.parser,
-				svelteFeatures: {
-					experimentalGenerics: true,
-				},
 			},
 		},
 	},
@@ -39,7 +36,7 @@ export default [
 				'error',
 				{
 					selector: 'variableLike',
-					format: ['snake_case', 'UPPER_CASE'],
+					format: ['snake_case', 'UPPER_CASE', 'PascalCase'],
 					leadingUnderscore: 'allow',
 				},
 				{
@@ -56,9 +53,16 @@ export default [
 			'@typescript-eslint/no-unused-expressions': 'off',
 			'@typescript-eslint/no-unused-vars': [
 				'error',
-				{ caughtErrorsIgnorePattern: '^_', argsIgnorePattern: '^_', varsIgnorePattern: '^_' },
+				{
+					caughtErrorsIgnorePattern: '^_',
+					argsIgnorePattern: '^_',
+					varsIgnorePattern: '^_',
+				},
 			],
+			eqeqeq: ['error', 'always'],
 			'svelte/button-has-type': 'error',
+			'svelte/require-each-key': 'off',
+			'svelte/no-reactive-reassign': 'off',
 		},
 	},
 ]

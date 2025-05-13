@@ -11,6 +11,8 @@
 	"devDependencies": {
 		"@ctrl/tinycolor": "^4.1.0",
 		"@octokit/core": "^6.1.4",
+		"@octokit/plugin-retry": "^7.2.1",
+		"@octokit/plugin-throttling": "^10.0.0",
 		"@sveltejs/adapter-cloudflare": "^5.0.3",
 		"@sveltejs/kit": "^2.19.0",
 		"@sveltejs/vite-plugin-svelte": "^5.0.3",

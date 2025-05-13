@@ -3,6 +3,8 @@ import { GraphqlResponseError } from '@octokit/graphql'
 import { PUBLIC_PAT } from '$env/static/public'
 import { get, writable } from 'svelte/store'
 import { browser } from '$app/environment'
+import { throttling } from '@octokit/plugin-throttling'
+import { retry } from '@octokit/plugin-retry'
 
 const loaded_token = browser ? localStorage.getItem('starchart-token') : undefined
 export const token = writable(loaded_token || '')
@@ -16,9 +18,37 @@ if (browser) {
 	})
 }
 
-const octokit = new Octokit({
+export const errors = writable<string[]>([])
+
+const MyOctokit = Octokit.plugin(throttling, retry)
+const octokit = new MyOctokit({
 	auth: get(token) || PUBLIC_PAT,
-	throttle: { enabled: false },
+	throttle: {
+		onRateLimit(retry_after, options, octokit, retry_count) {
+			console.log('onRateLimi', retry_after, options, octokit, retry_count)
+			const retry_message = ` Retrying in ${retry_after} seconds.`
+			const max_retries = 3
+			if (retry_count < max_retries) {
+				errors.update((errors) => {
+					errors.push(`Rate limit reached.${retry_message}`)
+					return errors
+				})
+				return true
+			}
+			errors.update((errors) => {
+				errors.push(`Rate limit reached ${max_retries} times.`)
+				return errors
+			})
+		},
+		onSecondaryRateLimit(retry_after, options, octokit, retry_count) {
+			console.log('onSecondaryRateLimi', retry_after, options, octokit, retry_count)
+			const retry_message = `Retrying in ${retry_after} seconds.`
+			errors.update((errors) => {
+				errors.push(`Rate limit reached.${retry_message}`)
+				return errors
+			})
+		},
+	},
 })
 
 export async function fetch_stargazers_page(
