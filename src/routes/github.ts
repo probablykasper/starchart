@@ -3,8 +3,11 @@ import { GraphqlResponseError } from '@octokit/graphql'
 import { PUBLIC_PAT } from '$env/static/public'
 import { get, writable } from 'svelte/store'
 import { browser } from '$app/environment'
-import { throttling } from '@octokit/plugin-throttling'
+import { throttling, type ThrottlingOptions } from '@octokit/plugin-throttling'
 import { retry } from '@octokit/plugin-retry'
+// @ts-expect-error import missing from bottleneck's package.json
+import BottleneckLight from 'bottleneck/light.js'
+const Bottleneck = BottleneckLight as typeof import('bottleneck').default
 
 const loaded_token = browser ? localStorage.getItem('starchart-token') : undefined
 export const token = writable(loaded_token || '')
@@ -18,36 +21,54 @@ if (browser) {
 	})
 }
 
-export const errors = writable<string[]>([])
+let next_error_id = 0
+const errors_store = writable<{ id: number; msg: string }[]>([])
+export const errors = {
+	subscribe: errors_store.subscribe,
+	push(msg: string) {
+		errors_store.update((errors) => {
+			errors.push({ id: next_error_id++, msg })
+			return errors
+		})
+	},
+	remove_index(index: number) {
+		errors_store.update((errors) => {
+			errors.splice(index, 1)
+			return errors
+		})
+	},
+}
+
+const rate_limit_handler: ThrottlingOptions['onRateLimit'] = (
+	retry_after,
+	options,
+	octokit,
+	retry_count,
+) => {
+	const retry_message = ` Retrying in ${retry_after} seconds.`
+	const max_retries = 3
+	if (retry_count < max_retries) {
+		errors.push(`Rate limit reached.${retry_message}`)
+		return true // retry
+	}
+	errors.push(`Rate limit reached ${max_retries} times.`)
+}
 
 const MyOctokit = Octokit.plugin(throttling, retry)
 const octokit = new MyOctokit({
 	auth: get(token) || PUBLIC_PAT,
 	throttle: {
-		onRateLimit(retry_after, options, octokit, retry_count) {
-			console.log('onRateLimi', retry_after, options, octokit, retry_count)
-			const retry_message = ` Retrying in ${retry_after} seconds.`
-			const max_retries = 3
-			if (retry_count < max_retries) {
-				errors.update((errors) => {
-					errors.push(`Rate limit reached.${retry_message}`)
-					return errors
-				})
-				return true
-			}
-			errors.update((errors) => {
-				errors.push(`Rate limit reached ${max_retries} times.`)
-				return errors
-			})
-		},
-		onSecondaryRateLimit(retry_after, options, octokit, retry_count) {
-			console.log('onSecondaryRateLimi', retry_after, options, octokit, retry_count)
-			const retry_message = `Retrying in ${retry_after} seconds.`
-			errors.update((errors) => {
-				errors.push(`Rate limit reached.${retry_message}`)
-				return errors
-			})
-		},
+		onRateLimit: rate_limit_handler,
+		onSecondaryRateLimit: rate_limit_handler,
+		// The `write` group is what @octokit/plugin-throttling uses for the GraphQL API
+		// This property is undocumented, but it is typed at least
+		write: new Bottleneck.Group({
+			maxConcurrent: 10,
+			minTime: 100,
+			// from @octokit/plugin-throttling source code:
+			id: 'octokit-write',
+			timeout: 1000 * 60 * 2,
+		}),
 	},
 })
 
@@ -57,6 +78,7 @@ export async function fetch_stargazers_page(
 	direction: 'forward' | 'back',
 	cursor?: string,
 ) {
+	const start_time = Date.now()
 	const response_promise = octokit.graphql<{
 		repository: {
 			stargazers: {
@@ -109,7 +131,7 @@ export async function fetch_stargazers_page(
 		}
 	})
 
-	console.log('response', response)
+	console.log('response took', Date.now() - start_time, response)
 	if ('error' in response) {
 		return { error: response.error, stargazers: undefined }
 	} else {

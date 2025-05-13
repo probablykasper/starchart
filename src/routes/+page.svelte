@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { fly, slide } from 'svelte/transition'
-	import { fetch_stargazers_page } from './github'
+	import { errors, fetch_stargazers_page } from './github'
 	import { onMount, tick } from 'svelte'
 	import '../app.sass'
 	import Nav from './Nav.svelte'
@@ -16,7 +16,7 @@
 
 	async function get_stargazers(owner: string, repo: string) {
 		if (!chart || !$chart) {
-			add_error('Chart not initialized')
+			errors.push('Chart not initialized')
 			return
 		}
 		for (const line of $chart.lines) {
@@ -38,7 +38,7 @@
 			}
 			const { error, stargazers } = await fetch_stargazers_page(owner, repo, 'forward', end_cursor)
 			if (!stargazers) {
-				add_error(error)
+				errors.push(error)
 				chart.deleteLine(line)
 				return
 			}
@@ -64,14 +64,6 @@
 			v: total_count,
 		})
 		chart.save()
-	}
-
-	let errors: { id: number; msg: string }[] = []
-	function add_error(msg: string) {
-		const id = Math.random()
-		errors.push({ id, msg })
-		errors = errors
-		return id
 	}
 
 	let width: number
@@ -113,7 +105,7 @@
 <Nav bind:owner bind:repo on_submit={() => get_stargazers(owner, repo)} />
 
 <main bind:this={main_el}>
-	{#each errors as error, i (error.id)}
+	{#each $errors as error, i (error.id)}
 		<div class="error-container" transition:slide={{ duration: 200 }}>
 			<div class="error" transition:fly={{ duration: 200, opacity: 0, y: -40 }}>
 				{error.msg}
@@ -121,8 +113,7 @@
 					type="button"
 					aria-label="Dismiss error"
 					on:click={() => {
-						errors.splice(i, 1)
-						errors = errors
+						errors.remove_index(i)
 					}}
 				>
 					<!-- Lucide download icon -->
