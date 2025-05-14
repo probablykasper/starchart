@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { cubicOut } from 'svelte/easing'
-	import { fade, scale } from 'svelte/transition'
+	import { fade, fly, scale } from 'svelte/transition'
 	import type { Line } from './chart'
 	import { hex_colors } from './color'
 
@@ -10,13 +10,13 @@
 	export let on_delete: () => void
 </script>
 
-<span
-	class="serie"
-	class:screenshot-mode={screenshot_mode}
-	style:--color-1={hex}
-	style:--color-2={hex + '77'}
-	in:scale={{ duration: 200, easing: cubicOut, start: 0.75, opacity: 0 }}
+<!-- svelte-ignore a11y_no_noninteractive_tabindex -->
+<!-- svelte-ignore a11y_no_static_element_interactions -->
+<div
+	class="container"
 	class:hidden={line.hidden}
+	style:--color-1={hex}
+	style:--color-2="color-mix(in srgb, black, var(--color-1) 47%)"
 	tabindex="0"
 	on:keydown={(e) => {
 		if (e.key === ' ' || e.key === 'Enter') {
@@ -28,63 +28,128 @@
 			e.preventDefault()
 		}
 	}}
-	role="button"
+	in:scale={{ duration: 200, easing: cubicOut, start: 0.75, opacity: 0 }}
 >
-	<button
-		type="button"
-		class="name"
-		tabindex="-1"
-		on:click={() => {
-			line.hidden = !line.hidden
-			line.instance.applyOptions({ visible: !line.hidden })
-		}}
-	>
-		{line.name}
-	</button>
-	<button type="button" class="x" class:loading={!line.final} on:click={on_delete} tabindex="-1">
-		<svg
-			fill="currentColor"
-			width="18"
-			height="18"
-			clip-rule="evenodd"
-			fill-rule="evenodd"
-			stroke-linejoin="round"
-			stroke-miterlimit="2"
-			viewBox="0 0 24 24"
-			xmlns="http://www.w3.org/2000/svg"
-			><path
-				d="m12 10.93 5.719-5.72c.146-.146.339-.219.531-.219.404 0 .75.324.75.749 0 .193-.073.385-.219.532l-5.72 5.719 5.719 5.719c.147.147.22.339.22.531 0 .427-.349.75-.75.75-.192 0-.385-.073-.531-.219l-5.719-5.719-5.719 5.719c-.146.146-.339.219-.531.219-.401 0-.75-.323-.75-.75 0-.192.073-.384.22-.531l5.719-5.719-5.72-5.719c-.146-.147-.219-.339-.219-.532 0-.425.346-.749.75-.749.192 0 .385.073.531.219z"
-			/></svg
-		>
-		{#if !line.final}
-			<div class="spinner" transition:fade={{ duration: 150 }}>
-				<div class="circle"></div>
+	{#if !line.final}
+		<div class="counter-container">
+			<div class="counter-bg">
+				{line.data.length}
 			</div>
-		{/if}
-	</button>
-</span>
+		</div>
+		<div class="counter-container">
+			<div class="counter">
+				<span class="counter-sizing-text">{line.data.length}</span>
+				{#key line.data.length}
+					<span
+						class="counter-text"
+						in:fly={{ duration: 300, y: 10 }}
+						out:fly={{ duration: 300, y: -10 }}>{line.data.length}</span
+					>
+				{/key}
+			</div>
+		</div>
+	{/if}
+	<span class="serie" class:screenshot-mode={screenshot_mode}>
+		<button
+			type="button"
+			class="name"
+			tabindex="-1"
+			on:click={() => {
+				line.hidden = !line.hidden
+				line.instance.applyOptions({ visible: !line.hidden })
+			}}
+		>
+			{line.name}
+		</button>
+		<button type="button" class="x" class:loading={!line.final} on:click={on_delete} tabindex="-1">
+			<svg
+				fill="currentColor"
+				width="18"
+				height="18"
+				clip-rule="evenodd"
+				fill-rule="evenodd"
+				stroke-linejoin="round"
+				stroke-miterlimit="2"
+				viewBox="0 0 24 24"
+				xmlns="http://www.w3.org/2000/svg"
+				><path
+					d="m12 10.93 5.719-5.72c.146-.146.339-.219.531-.219.404 0 .75.324.75.749 0 .193-.073.385-.219.532l-5.72 5.719 5.719 5.719c.147.147.22.339.22.531 0 .427-.349.75-.75.75-.192 0-.385-.073-.531-.219l-5.719-5.719-5.719 5.719c-.146.146-.339.219-.531.219-.401 0-.75-.323-.75-.75 0-.192.073-.384.22-.531l5.719-5.719-5.72-5.719c-.146-.147-.219-.339-.219-.532 0-.425.346-.749.75-.749.192 0 .385.073.531.219z"
+				/></svg
+			>
+			{#if !line.final}
+				<div class="spinner" transition:fade={{ duration: 150 }}>
+					<div class="circle"></div>
+				</div>
+			{/if}
+		</button>
+	</span>
+</div>
 
 <style lang="sass">
+	.container
+		position: relative
+		outline: none
 	.serie
 		border-radius: 8px
 		border: 2px solid
 		display: inline-flex
 		align-items: center
-		font-size: 0.9rem
+		font-size: 0.9375rem
 		font-weight: 500
 		transition: 100ms ease-out
 		outline: 1px solid transparent
 		background-color: var(--color-2)
 		border-color: var(--color-1)
 		height: 24px
-		&:focus-visible
-			border-color: hsla(0, 0%, 100%, 1)
+		position: relative
 		svg
 			display: block
+	.container:focus-visible .serie
+		border-color: hsla(0, 0%, 100%, 1)
+	.counter-container
+		position: absolute
+		bottom: -0.9375rem
+		font-size: 0.75rem
+		width: 100%
+		display: flex
+		justify-content: center
+		user-select: none
+		overflow: hidden
+	.counter-bg, .counter
+		padding-bottom: 0.175rem
+		padding-right: 0.5rem
+		padding-left: 0.5rem
+	.counter-bg
+		border: 2px solid
+		background-color: var(--color-2)
+		border-color: var(--color-1)
+		border-radius: 8px
+		color: transparent
+	.container:focus-visible .counter-bg
+		border-color: hsla(0, 0%, 100%, 1)
+	.counter
+		z-index: 1
+		background-color: var(--color-2)
+		border-bottom-left-radius: 8px
+		border-bottom-right-radius: 8px
+		margin-bottom: 0.175rem
+		padding-bottom: 0rem
+		position: relative
+		span
+			pointer-events: none
+		.counter-sizing-text
+			color: transparent
+		.counter-text
+			position: absolute
+			top: 0
+			left: 0
+			width: 100%
 	.hidden
 		opacity: 0.6
-		text-decoration: line-through
-		border-style: dashed
+		button
+			text-decoration: line-through
+		.serie, .counter-bg
+			border-style: dashed
 	button
 		background: none
 		border: none
