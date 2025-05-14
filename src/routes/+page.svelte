@@ -30,6 +30,7 @@
 			color: get_next_color_index(),
 			data: [],
 		})
+		let i = 0
 		do {
 			if (line.deleted) {
 				return // abort
@@ -41,20 +42,17 @@
 				return
 			}
 
-			line.data = repo_stars.data_points
-			// console.log(line.data.map((d) => `${d.t} ${d.v}`).join('\n'))
-			// const from = new Date(stargazers.star_times_data[0].t * 1000).toLocaleDateString('sv')
-			// const to = new Date(
-			// 	stargazers.star_times_data[stargazers.star_times_data.length - 1].t * 1000,
-			// ).toLocaleDateString('sv')
-			// console.log(from, stargazers.star_times_data[0].v, to, stargazers.star_times_data[0].v)
-			chart.appendStargazers(line)
+			chart.updateStargazers(line, repo_stars.data_points)
+			if (i === 1) {
+				// for some reason doesn't work on index 0
+				chart.resetZoom()
+			}
+			i++
 		} while (repo_stars.request_queue.length > 0)
-		line.data.push({
+		chart.addFinal(line, {
 			t: Math.floor(new Date().getTime() / 1000) as UTCTimestamp,
 			v: Math.max(repo_stars.total_count, count),
 		})
-		chart.addFinal(line)
 		chart.save()
 	}
 

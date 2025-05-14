@@ -1,4 +1,5 @@
 import {
+	AreaSeries,
 	createChart as create_chart_instance,
 	PriceScaleMode,
 	TickMarkType,
@@ -174,7 +175,7 @@ export function new_chart(container: HTMLElement, options: DeepPartial<ChartOpti
 		set_default_formatting()
 	}
 
-	const filler_line = chart.instance.addAreaSeries({
+	const filler_line = chart.instance.addSeries(AreaSeries, {
 		priceScaleId: '',
 		visible: false,
 	})
@@ -190,12 +191,12 @@ export function new_chart(container: HTMLElement, options: DeepPartial<ChartOpti
 	const store = {
 		subscribe,
 
-		addLine(line_json: LineBase) {
-			const series = chart.instance.addAreaSeries({
+		addLine(new_line: LineBase) {
+			const series = chart.instance.addSeries(AreaSeries, {
 				priceLineVisible: false,
-				topColor: top_colors[line_json.color],
-				bottomColor: bottom_colors[line_json.color],
-				lineColor: hex_colors[line_json.color],
+				topColor: top_colors[new_line.color],
+				bottomColor: bottom_colors[new_line.color],
+				lineColor: hex_colors[new_line.color],
 				priceFormat: {
 					type: 'custom',
 					formatter: (price: number) => {
@@ -205,12 +206,12 @@ export function new_chart(container: HTMLElement, options: DeepPartial<ChartOpti
 			})
 
 			const line: Line = {
-				...line_json,
+				...new_line,
 				instance: series,
 				deleted: false,
 			}
-			if (line_json.data.length >= 1) {
-				let chart_series = to_chart_series(line_json.data)
+			if (new_line.data.length >= 1) {
+				let chart_series = to_chart_series(new_line.data)
 
 				if (chart.align) {
 					chart_series = align_chart_series(chart_series)
@@ -219,8 +220,8 @@ export function new_chart(container: HTMLElement, options: DeepPartial<ChartOpti
 				series.setData(chart_series)
 			}
 			chart.lines.push(line)
-			update_filler(chart.lines)
-			if (line_json.data.length >= 1) {
+			if (line.data.length >= 1) {
+				update_filler(chart.lines)
 				store.resetZoom()
 			}
 			set(chart)
@@ -296,9 +297,6 @@ export function new_chart(container: HTMLElement, options: DeepPartial<ChartOpti
 				line.lastChartSeriesDate = aligned_chart_series[aligned_chart_series.length - 1].time
 
 				line.instance.setData(aligned_chart_series)
-				// for (const data_point of aligned_chart_series) {
-				// 	line.instance.update(data_point)
-				// }
 			}
 		},
 
@@ -308,41 +306,19 @@ export function new_chart(container: HTMLElement, options: DeepPartial<ChartOpti
 			} else if (chart.align) {
 				return this._appendAlignedChartData(line)
 			}
-			// console.log('appendChartData', {
-			// 	line_data: line.data.map((d) => `${d.t} ${d.v}`).join('\n'),
-			// })
 			const chart_series = to_chart_series(line.data)
 			line.lastChartSeriesDate = chart_series[chart_series.length - 1].time
 			const fresh = line.data.length === 0
-
-			// const last = -1
-			// console.log(
-			// 	'chart_series',
-			// 	chart_series.filter((d) => {
-			// 		const is_last = d.value !== last
-			// 		last = d.value
-			// 		return is_last
-			// 	}),
-			// )
 			if (fresh) {
 				line.instance.setData(chart_series)
 			} else {
-				// console.log(
-				// 	'chart_series',
-				// 	chart_series.map(
-				// 		(d) =>
-				// 			`${d.time.year} ${d.time.month.toString().padStart(2, '0')} ${d.time.day.toString().padStart(2, '0')} ${d.value.toString().padStart(4)}`,
-				// 	),
-				// )
 				line.instance.setData(chart_series)
-				// for (const data_point of chart_series) {
-				// 	line.instance.update(data_point)
-				// }
 			}
 		},
 
-		appendStargazers(line: Line) {
+		updateStargazers(line: Line, data: DataPoint[]) {
 			const fresh = line.data.length === 0
+			line.data = data
 			store._appendChartData(line)
 			if (fresh) {
 				update_filler(chart.lines)
@@ -351,7 +327,8 @@ export function new_chart(container: HTMLElement, options: DeepPartial<ChartOpti
 			set(chart)
 		},
 
-		addFinal(line: Line) {
+		addFinal(line: Line, data: DataPoint) {
+			line.data.push(data)
 			store._appendChartData(line)
 			line.final = line.data[line.data.length - 1]
 			update_filler(chart.lines)

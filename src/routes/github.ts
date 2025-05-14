@@ -112,9 +112,6 @@ export class RepoStars {
 		}
 		// copy to prevent desync
 		const cursor = { ...this.next_cursor }
-		if (direction === 'backward') {
-			await new Promise((resolve) => setTimeout(resolve, 200))
-		}
 		const start_time = Date.now()
 		type Stargazers = {
 			totalCount: number
@@ -240,9 +237,6 @@ export class RepoStars {
 			star_times.reverse() // reset order
 		}
 		const has_overlapped = star_times.length !== stargazers.edges.length
-		if (has_overlapped) {
-			console.log(direction[0], 'has_overlapped')
-		}
 
 		this.data_points.push(...star_times)
 		this.data_points.sort((a, b) => a.t - b.t)
