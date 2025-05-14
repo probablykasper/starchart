@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { fly, slide } from 'svelte/transition'
-	import { errors, fetch_stargazers_page } from './github'
+	import { errors, fetch_stargazers_rest, RepoStars } from './github'
 	import { onMount, tick } from 'svelte'
 	import '../app.sass'
 	import Nav from './Nav.svelte'
@@ -14,6 +14,62 @@
 
 	let chart: Chart | undefined
 
+	// async function get_stargazers(owner: string, repo: string) {
+	// 	if (!chart || !$chart) {
+	// 		errors.push('Chart not initialized')
+	// 		return
+	// 	}
+	// 	for (const line of $chart.lines) {
+	// 		if (line.name === `${owner}/${repo}`) {
+	// 			return // already added
+	// 		}
+	// 	}
+	// 	let count = 0
+	// 	let next_page: number | null = 1
+	// 	const line = chart.addLine({
+	// 		name: `${owner}/${repo}`,
+	// 		color: get_next_color_index(),
+	// 		data: [],
+	// 	})
+	// 	let total_count = 0
+	// 	do {
+	// 		if (line.deleted) {
+	// 			return // abort
+	// 		}
+	// 		// const { error, stargazers } = await fetch_stargazers_page(owner, repo, 'forward', end_cursor)
+	// 		const { error, stargazers } = await fetch_stargazers_rest(owner, repo, next_page)
+	// 		if (!stargazers) {
+	// 			errors.push(error)
+	// 			chart.deleteLine(line)
+	// 			return
+	// 		}
+
+	// 		if (stargazers.pageInfo.hasNextPage) {
+	// 			next_page += 1
+	// 		} else {
+	// 			next_page = null
+	// 		}
+	// 		total_count = 0
+
+	// 		const new_data = stargazers.starTimes.map((star_time) => {
+	// 			count++
+	// 			if (!star_time) {
+	// 				errors.push('star_time is undefined')
+	// 				throw new Error('star_time is undefined')
+	// 			}
+	// 			return {
+	// 				t: Math.floor(new Date(star_time).getTime() / 1000) as UTCTimestamp,
+	// 				v: count,
+	// 			}
+	// 		})
+	// 		chart.appendStargazers(line, new_data)
+	// 	} while (next_page !== null)
+	// 	chart.addFinal(line, {
+	// 		t: Math.floor(new Date().getTime() / 1000) as UTCTimestamp,
+	// 		v: Math.max(total_count, count),
+	// 	})
+	// 	chart.save()
+	// }
 	async function get_stargazers(owner: string, repo: string) {
 		if (!chart || !$chart) {
 			errors.push('Chart not initialized')
@@ -24,45 +80,38 @@
 				return // already added
 			}
 		}
+		let repo_stars = new RepoStars(owner, repo)
 		let count = 0
-		let end_cursor: string | undefined
 		const line = chart.addLine({
 			name: `${owner}/${repo}`,
 			color: get_next_color_index(),
 			data: [],
 		})
-		let total_count = 0
 		do {
 			if (line.deleted) {
 				return // abort
 			}
-			const { error, stargazers } = await fetch_stargazers_page(owner, repo, 'forward', end_cursor)
+			const { error, stargazers } = await repo_stars.fetch_concurrent()
 			if (!stargazers) {
 				errors.push(error)
 				chart.deleteLine(line)
 				return
 			}
 
-			if (stargazers.pageInfo.hasNextPage) {
-				end_cursor = stargazers.pageInfo.endCursor
-			} else {
-				end_cursor = undefined
-			}
-			total_count = stargazers.totalCount
-
-			const new_data = stargazers.starTimes.map((star_time) => {
-				count++
-				return {
-					t: Math.floor(new Date(star_time).getTime() / 1000) as UTCTimestamp,
-					v: count,
-				}
-			})
-			chart.appendStargazers(line, new_data)
-		} while (end_cursor)
-		chart.addFinal(line, {
+			line.data = repo_stars.data_points
+			// console.log(line.data.map((d) => `${d.t} ${d.v}`).join('\n'))
+			const from = new Date(stargazers.star_times_data[0].t * 1000).toLocaleDateString('sv')
+			const to = new Date(
+				stargazers.star_times_data[stargazers.star_times_data.length - 1].t * 1000,
+			).toLocaleDateString('sv')
+			console.log(from, stargazers.star_times_data[0].v, to, stargazers.star_times_data[0].v)
+			chart.appendStargazers(line)
+		} while (repo_stars.request_queue.length > 0)
+		line.data.push({
 			t: Math.floor(new Date().getTime() / 1000) as UTCTimestamp,
-			v: Math.max(total_count, count),
+			v: Math.max(repo_stars.total_count, count),
 		})
+		chart.addFinal(line)
 		chart.save()
 	}
 

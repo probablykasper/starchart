@@ -210,9 +210,7 @@ export function new_chart(container: HTMLElement, options: DeepPartial<ChartOpti
 				deleted: false,
 			}
 			if (line_json.data.length >= 1) {
-				const start = line_json.data[0]
-				const end = line_json.final ?? line_json.data[line_json.data.length - 1]
-				let chart_series = to_chart_series(line_json.data, start, end)
+				let chart_series = to_chart_series(line_json.data)
 
 				if (chart.align) {
 					chart_series = align_chart_series(chart_series)
@@ -235,9 +233,7 @@ export function new_chart(container: HTMLElement, options: DeepPartial<ChartOpti
 				if (line.deleted || line.data.length === 0) {
 					continue
 				}
-				const start = line.data[0]
-				const end = line.data[line.data.length - 1]
-				const chart_series = to_chart_series(line.data, start, end)
+				const chart_series = to_chart_series(line.data)
 				const aligned_chart_series = align_chart_series(chart_series)
 				line.instance.setData(aligned_chart_series)
 				line.lastChartSeriesDate = aligned_chart_series[aligned_chart_series.length - 1].time
@@ -254,9 +250,7 @@ export function new_chart(container: HTMLElement, options: DeepPartial<ChartOpti
 				if (line.deleted || line.data.length === 0) {
 					continue
 				}
-				const start = line.data[0]
-				const end = line.data[line.data.length - 1]
-				const chart_series = to_chart_series(line.data, start, end)
+				const chart_series = to_chart_series(line.data)
 				line.instance.setData(chart_series)
 				line.lastChartSeriesDate = chart_series[chart_series.length - 1].time
 			}
@@ -282,18 +276,16 @@ export function new_chart(container: HTMLElement, options: DeepPartial<ChartOpti
 			set(chart)
 		},
 
-		_appendAlignedChartData(line: Line, data: DataPoint[]) {
-			if (data.length === 0) {
+		_appendAlignedChartData(line: Line) {
+			if (line.data.length === 0) {
 				return
 			}
-			const start = data[0]
-			const end = data[data.length - 1]
-			const chart_series = to_chart_series(data, start, end)
+			const chart_series = to_chart_series(line.data)
 			const fresh = line.data.length === 0
 			if (fresh) {
-				const aigned_chart_series = align_chart_series(chart_series)
-				line.instance.setData(aigned_chart_series)
-				line.lastChartSeriesDate = aigned_chart_series[aigned_chart_series.length - 1].time
+				const aligned_chart_series = align_chart_series(chart_series)
+				line.instance.setData(aligned_chart_series)
+				line.lastChartSeriesDate = aligned_chart_series[aligned_chart_series.length - 1].time
 			} else {
 				const start_day = line.lastChartSeriesDate
 				if (!start_day) {
@@ -303,37 +295,55 @@ export function new_chart(container: HTMLElement, options: DeepPartial<ChartOpti
 				const aligned_chart_series = align_chart_series(chart_series, start_date)
 				line.lastChartSeriesDate = aligned_chart_series[aligned_chart_series.length - 1].time
 
-				for (const data_point of aligned_chart_series) {
-					line.instance.update(data_point)
-				}
+				line.instance.setData(aligned_chart_series)
+				// for (const data_point of aligned_chart_series) {
+				// 	line.instance.update(data_point)
+				// }
 			}
 		},
 
-		_appendChartData(line: Line, data: DataPoint[]) {
-			if (data.length === 0) {
+		_appendChartData(line: Line) {
+			if (line.data.length === 0) {
 				return
 			} else if (chart.align) {
-				return this._appendAlignedChartData(line, data)
+				return this._appendAlignedChartData(line)
 			}
-			const start = line.data[line.data.length - 1] ?? data[0]
-			const end = line.final ?? data[data.length - 1]
-			const chart_series = to_chart_series(data, start, end)
+			// console.log('appendChartData', {
+			// 	line_data: line.data.map((d) => `${d.t} ${d.v}`).join('\n'),
+			// })
+			const chart_series = to_chart_series(line.data)
 			line.lastChartSeriesDate = chart_series[chart_series.length - 1].time
 			const fresh = line.data.length === 0
 
+			// const last = -1
+			// console.log(
+			// 	'chart_series',
+			// 	chart_series.filter((d) => {
+			// 		const is_last = d.value !== last
+			// 		last = d.value
+			// 		return is_last
+			// 	}),
+			// )
 			if (fresh) {
 				line.instance.setData(chart_series)
 			} else {
-				for (const data_point of chart_series) {
-					line.instance.update(data_point)
-				}
+				// console.log(
+				// 	'chart_series',
+				// 	chart_series.map(
+				// 		(d) =>
+				// 			`${d.time.year} ${d.time.month.toString().padStart(2, '0')} ${d.time.day.toString().padStart(2, '0')} ${d.value.toString().padStart(4)}`,
+				// 	),
+				// )
+				line.instance.setData(chart_series)
+				// for (const data_point of chart_series) {
+				// 	line.instance.update(data_point)
+				// }
 			}
 		},
 
-		appendStargazers(line: Line, data: DataPoint[]) {
+		appendStargazers(line: Line) {
 			const fresh = line.data.length === 0
-			store._appendChartData(line, data)
-			line.data.push(...data)
+			store._appendChartData(line)
 			if (fresh) {
 				update_filler(chart.lines)
 				store.resetZoom()
@@ -341,9 +351,9 @@ export function new_chart(container: HTMLElement, options: DeepPartial<ChartOpti
 			set(chart)
 		},
 
-		addFinal(line: Line, data: DataPoint) {
-			store._appendChartData(line, [data])
-			line.final = data
+		addFinal(line: Line) {
+			store._appendChartData(line)
+			line.final = line.data[line.data.length - 1]
 			update_filler(chart.lines)
 			set(chart)
 		},
@@ -437,10 +447,11 @@ type ChartSeries = {
 	}
 	value: number
 }
-function to_chart_series(data: DataPoint[], start: DataPoint, final: DataPoint): ChartSeries[] {
+function to_chart_series(data: DataPoint[]): ChartSeries[] {
 	const data_points: { date: Date; value: number }[] = []
+	data.sort((a, b) => a.t - b.t)
 
-	for (const data_point of [start, ...data, final]) {
+	for (const data_point of data) {
 		const dt = new Date(data_point.t * 1000)
 		const date = new Date(dt.getFullYear(), dt.getMonth(), dt.getDate())
 
