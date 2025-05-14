@@ -205,7 +205,7 @@ export class RepoStars {
 		const stargazers = response.repository.stargazers
 
 		if (!this.backward_count_initialised) {
-			this.backward_count = stargazers.totalCount
+			this.backward_count = stargazers.totalCount + 1
 			this.backward_count_initialised = true
 		}
 
