@@ -5,7 +5,6 @@ import { get, writable } from 'svelte/store'
 import { browser } from '$app/environment'
 import { throttling, type ThrottlingOptions } from '@octokit/plugin-throttling'
 import { retry } from '@octokit/plugin-retry'
-// import parse_link_header from '@renyuneyun/parse-link-header-ts'
 // @ts-expect-error import missing from bottleneck's package.json
 import BottleneckLight from 'bottleneck/light.js'
 import type { UTCTimestamp } from 'lightweight-charts'
@@ -129,49 +128,6 @@ export class RepoStars {
 				starredAt: string
 			}[]
 		}
-		// const response_promise = octokit.graphql<{
-		// 	repository: {
-		// 		stargazers_forwards: Stargazers
-		// 		stargazers_backwards: Stargazers
-		// 	}
-		// }>(
-		// 	`query($owner: String!, $repo: String!, $after: String, $before: String) {
-		// 			repository(owner: $owner, name: $repo) {
-		// 				stargazers_forwards: stargazers(first: 100, after: $after, orderBy: {field: STARRED_AT, direction: ASC}) {
-		// 					totalCount
-		// 					pageInfo {
-		// 						startCursor
-		// 						endCursor
-		// 						hasNextPage
-		// 						hasPreviousPage
-		// 					}
-		// 					edges {
-		// 						starredAt
-		// 						user: node { id }
-		// 					}
-		// 				}
-		// 				stargazers_backwards: stargazers(last: 100, before: $before, orderBy: {field: STARRED_AT, direction: ASC}) {
-		// 					totalCount
-		// 					pageInfo {
-		// 						startCursor
-		// 						endCursor
-		// 						hasNextPage
-		// 						hasPreviousPage
-		// 					}
-		// 					edges {
-		// 						starredAt
-		// 						user: node { id }
-		// 					}
-		// 				}
-		// 			}
-		// 		}`,
-		// 	{
-		// 		owner: this.owner,
-		// 		repo: this.repo,
-		// 		after: this.next_cursor.forwards,
-		// 		before: this.next_cursor.backwards,
-		// 	},
-		// )
 		const response_promise = octokit.graphql<{
 			repository: {
 				stargazers: Stargazers
@@ -317,46 +273,6 @@ export class RepoStars {
 			stargazers: {
 				direction,
 				star_times_data: star_times,
-			},
-		}
-	}
-}
-
-export async function fetch_stargazers_rest(owner: string, repo: string, page: number) {
-	const start_time = Date.now()
-	const response_promise = octokit.request('GET /repos/{owner}/{repo}/stargazers', {
-		owner,
-		repo,
-		per_page: 100,
-		page,
-		headers: {
-			accept: 'application/vnd.github.v3.star+json',
-		},
-	})
-
-	const response = await response_promise.catch((error) => {
-		if (error instanceof GraphqlResponseError && error.errors) {
-			return {
-				error: error.errors.map((error) => error.message).join('/n'),
-			}
-		} else if (error instanceof Error) {
-			return { error: `${error.name}: ${error.message}` }
-		} else {
-			return { error: "Couldn't fetch stargazers" }
-		}
-	})
-
-	console.log('response took', Date.now() - start_time, response)
-	if ('error' in response) {
-		return { error: response.error, stargazers: undefined }
-	} else {
-		return {
-			error: undefined,
-			stargazers: {
-				pageInfo: {
-					hasNextPage: response.headers.link?.includes('rel="next"'),
-				},
-				starTimes: response.data.map((stargazer) => stargazer.starred_at),
 			},
 		}
 	}
