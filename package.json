@@ -22,7 +22,7 @@
 		"eslint-plugin-svelte": "^3.0.3",
 		"html2canvas": "^1.4.1",
 		"isomorphic-fetch": "^3.0.0",
-		"lightweight-charts": "^4.2.3",
+		"lightweight-charts": "^5.0.6",
 		"modal-svelte": "^1.4.0",
 		"prettier": "^3.5.3",
 		"prettier-plugin-svelte": "^3.3.3",

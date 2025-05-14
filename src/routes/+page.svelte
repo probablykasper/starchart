@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { fly, slide } from 'svelte/transition'
-	import { errors, fetch_stargazers_page } from './github'
+	import { errors, RepoStars } from './github'
 	import { onMount, tick } from 'svelte'
 	import '../app.sass'
 	import Nav from './Nav.svelte'
@@ -13,7 +13,6 @@
 	let [owner, repo] = ['', '']
 
 	let chart: Chart | undefined
-
 	async function get_stargazers(owner: string, repo: string) {
 		if (!chart || !$chart) {
 			errors.push('Chart not initialized')
@@ -24,44 +23,35 @@
 				return // already added
 			}
 		}
+		let repo_stars = new RepoStars(owner, repo)
 		let count = 0
-		let end_cursor: string | undefined
 		const line = chart.addLine({
 			name: `${owner}/${repo}`,
 			color: get_next_color_index(),
 			data: [],
 		})
-		let total_count = 0
+		let i = 0
 		do {
 			if (line.deleted) {
 				return // abort
 			}
-			const { error, stargazers } = await fetch_stargazers_page(owner, repo, 'forward', end_cursor)
+			const { error, stargazers } = await repo_stars.fetch_concurrent()
 			if (!stargazers) {
 				errors.push(error)
 				chart.deleteLine(line)
 				return
 			}
 
-			if (stargazers.pageInfo.hasNextPage) {
-				end_cursor = stargazers.pageInfo.endCursor
-			} else {
-				end_cursor = undefined
+			chart.updateStargazers(line, repo_stars.data_points)
+			if (i === 1) {
+				// for some reason doesn't work on index 0
+				chart.resetZoom()
 			}
-			total_count = stargazers.totalCount
-
-			const new_data = stargazers.starTimes.map((star_time) => {
-				count++
-				return {
-					t: Math.floor(new Date(star_time).getTime() / 1000) as UTCTimestamp,
-					v: count,
-				}
-			})
-			chart.appendStargazers(line, new_data)
-		} while (end_cursor)
+			i++
+		} while (repo_stars.request_queue.length > 0)
 		chart.addFinal(line, {
 			t: Math.floor(new Date().getTime() / 1000) as UTCTimestamp,
-			v: Math.max(total_count, count),
+			v: Math.max(repo_stars.total_count, count),
 		})
 		chart.save()
 	}
