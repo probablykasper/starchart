@@ -9,8 +9,48 @@
 	import type { UTCTimestamp } from 'lightweight-charts'
 	import Tooltip from './Tooltip.svelte'
 	import html2canvas from 'html2canvas'
+	import { z } from 'zod'
 
 	let [owner, repo] = ['', '']
+
+	async function cached_fetch(owner: string, repo: string) {
+		try {
+			const full_api_request = await (
+				await fetch(`https://emafuma.mywire.org:8090/allStars?repo=${owner}/${repo}`)
+			).json()
+
+			const schema = z.object({
+				stars: z.array(z.tuple([z.string(), z.number().int(), z.number().int()])),
+			})
+
+			const result = schema.parse(full_api_request)
+			return {
+				stars: result.stars
+					.map(([t, _amount, accumulated]) => {
+						if (!/\d{2}-\d{2}-\d{4}/.test(t)) {
+							throw new Error('unexpected date: ' + t)
+						}
+						const date_components = t.split('-')
+						const date = new Date(date_components.reverse().join('-'))
+						if (date_components.length !== 3 || date_components[0].length)
+							if (Number.isNaN(new Date(t).getTime() / 1000)) {
+								console.log(t, new Date(t), new Date(t).getTime() / 1000)
+							}
+						return {
+							t: (date.getTime() / 1000) as UTCTimestamp,
+							v: accumulated,
+						}
+					})
+					.filter(({ v }) => v > 0)
+					.sort((a, b) => a.t - b.t),
+			}
+		} catch (error) {
+			console.error(error)
+			return {
+				stars: [] as { t: UTCTimestamp; v: number }[],
+			}
+		}
+	}
 
 	let chart: Chart | undefined
 	async function get_stargazers(owner: string, repo: string) {
@@ -23,6 +63,12 @@
 				return // already added
 			}
 		}
+
+		let cached_stars: Awaited<ReturnType<typeof cached_fetch>> | undefined
+		cached_fetch(owner, repo).then((result) => {
+			cached_stars = result
+		})
+
 		let repo_stars = new RepoStars(owner, repo)
 		let count = 0
 		const line = chart.addLine({
@@ -32,6 +78,14 @@
 		})
 		let i = 0
 		do {
+			if (cached_stars && cached_stars.stars.length > 0) {
+				line.data = []
+				repo_stars.data_points = cached_stars.stars
+				console.log('cached_stars', cached_stars.stars)
+				chart.updateStargazers(line, repo_stars.data_points)
+				chart.resetZoom()
+				break
+			}
 			if (line.deleted) {
 				return // abort
 			}
@@ -41,6 +95,7 @@
 				chart.deleteLine(line)
 				return
 			}
+			console.log('stargazers', stargazers)
 
 			chart.updateStargazers(line, repo_stars.data_points)
 			if (i === 1) {
