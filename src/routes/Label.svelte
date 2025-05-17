@@ -30,7 +30,8 @@
 	}}
 	in:scale={{ duration: 200, easing: cubicOut, start: 0.75, opacity: 0 }}
 >
-	{#if !line.final}
+	<!-- Hide when 0 because it may load from cache server -->
+	{#if !line.final && line.data.length > 0}
 		<div class="counter-container">
 			<div class="counter-bg">
 				{line.data.length}
