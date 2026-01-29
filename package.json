@@ -10,9 +10,9 @@
 	},
 	"devDependencies": {
 		"@ctrl/tinycolor": "^4.2.0",
-		"@octokit/core": "^6.1.6",
-		"@octokit/plugin-retry": "^7.2.1",
-		"@octokit/plugin-throttling": "^10.0.0",
+		"@octokit/core": "^7.0.6",
+		"@octokit/plugin-retry": "^8.0.3",
+		"@octokit/plugin-throttling": "^11.0.3",
 		"@sveltejs/adapter-cloudflare": "^5.1.0",
 		"@sveltejs/kit": "^2.50.1",
 		"@sveltejs/vite-plugin-svelte": "^5.1.1",
