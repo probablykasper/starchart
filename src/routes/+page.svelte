@@ -20,7 +20,7 @@
 			).json()
 
 			const schema = z.object({
-				stars: z.array(z.tuple([z.string(), z.number().int(), z.number().int()])),
+				stars: z.array(z.tuple([z.string(), z.number().int(), z.int()])),
 			})
 
 			const result = schema.parse(full_api_request)
