@@ -6,7 +6,7 @@
 	export let on_submit: () => void
 	let repo_element: HTMLInputElement
 
-	$: owner, parse_owner_field()
+	$: (owner, parse_owner_field())
 	async function parse_owner_field() {
 		owner = owner.replace(/^https?:\/\//, '').replace('github.com/', '')
 		const slash_index = owner.indexOf('/')
