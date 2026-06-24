@@ -39,7 +39,7 @@ type LineJson = {
 }
 
 /** Used to invalidate old localStorage */
-const json_type_version = 3
+const json_type_version = 4
 type Json = {
 	lines: LineJson[]
 	align: boolean
@@ -211,7 +211,7 @@ export function new_chart(container: HTMLElement, options: DeepPartial<ChartOpti
 				deleted: false,
 			}
 			if (new_line.data.length >= 1) {
-				let chart_series = to_chart_series(new_line.data)
+				let chart_series = to_chart_series(new_line.data, new_line.final)
 
 				if (chart.align) {
 					chart_series = align_chart_series(chart_series)
@@ -234,7 +234,7 @@ export function new_chart(container: HTMLElement, options: DeepPartial<ChartOpti
 				if (line.deleted || line.data.length === 0) {
 					continue
 				}
-				const chart_series = to_chart_series(line.data)
+				const chart_series = to_chart_series(line.data, line.final)
 				const aligned_chart_series = align_chart_series(chart_series)
 				line.instance.setData(aligned_chart_series)
 				line.lastChartSeriesDate = aligned_chart_series[aligned_chart_series.length - 1].time
@@ -251,7 +251,7 @@ export function new_chart(container: HTMLElement, options: DeepPartial<ChartOpti
 				if (line.deleted || line.data.length === 0) {
 					continue
 				}
-				const chart_series = to_chart_series(line.data)
+				const chart_series = to_chart_series(line.data, line.final)
 				line.instance.setData(chart_series)
 				line.lastChartSeriesDate = chart_series[chart_series.length - 1].time
 			}
@@ -281,7 +281,7 @@ export function new_chart(container: HTMLElement, options: DeepPartial<ChartOpti
 			if (line.data.length === 0) {
 				return
 			}
-			const chart_series = to_chart_series(line.data)
+			const chart_series = to_chart_series(line.data, line.final)
 			const fresh = line.data.length === 0
 			if (fresh) {
 				const aligned_chart_series = align_chart_series(chart_series)
@@ -306,7 +306,7 @@ export function new_chart(container: HTMLElement, options: DeepPartial<ChartOpti
 			} else if (chart.align) {
 				return this._appendAlignedChartData(line)
 			}
-			const chart_series = to_chart_series(line.data)
+			const chart_series = to_chart_series(line.data, line.final)
 			line.lastChartSeriesDate = chart_series[chart_series.length - 1].time
 			const fresh = line.data.length === 0
 			if (fresh) {
@@ -328,9 +328,10 @@ export function new_chart(container: HTMLElement, options: DeepPartial<ChartOpti
 		},
 
 		addFinal(line: Line, data: DataPoint) {
-			line.data.push(data)
+			// Don't add it to line.data, that would mess up localStorage.
+			// Instead, we add it directly to the chart later
 			store._appendChartData(line)
-			line.final = line.data[line.data.length - 1]
+			line.final = data
 			update_filler(chart.lines)
 			set(chart)
 		},
@@ -424,11 +425,16 @@ type ChartSeries = {
 	}
 	value: number
 }
-function to_chart_series(data: DataPoint[]): ChartSeries[] {
+function to_chart_series(data: DataPoint[], final?: DataPoint): ChartSeries[] {
 	const data_points: { date: Date; value: number }[] = []
 	data.sort((a, b) => a.t - b.t)
 
-	for (const data_point of data) {
+	for (let i = 0; i < data.length + Number(!!final); i++) {
+		let data_point = data[i]
+		if (i === data.length) {
+			if (!final) throw new Error('final is undefined')
+			data_point = final
+		}
 		const dt = new Date(data_point.t * 1000)
 		const date = new Date(dt.getFullYear(), dt.getMonth(), dt.getDate())
 
